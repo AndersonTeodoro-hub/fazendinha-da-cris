@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Fazendinha dos Bichos HD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* layout: placa de madeira em cima, campo a toda a largura, cinto de ferramentas em baixo */
+  --mato:#2c5a36; --madeira:#9a6a3f; --madeira-escura:#5a3a22; --papel:#fbf0d2;
+  --tinta:#3b2a2a; --baga:#e0475a; --sol:#f6c945;
+  --f-titulo:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --f-texto:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--mato);color:var(--tinta);font-family:var(--f-texto);font-size:16px;
+  -webkit-user-select:none;user-select:none;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+header,nav{background:linear-gradient(#a97647,var(--madeira));display:flex;align-items:center;gap:8px;padding:7px 12px}
+header{border-bottom:3px solid var(--madeira-escura)}
+nav{border-top:3px solid var(--madeira-escura);justify-content:center;flex-wrap:wrap}
+h1{font-family:var(--f-titulo);font-weight:600;font-size:18px;margin:0;color:var(--papel);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 0 var(--madeira-escura)}
+.chapa{background:var(--papel);border:2px solid var(--madeira-escura);border-radius:999px;padding:3px 12px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chapa i{display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,var(--sol) 60%);border:2px solid #a8742c;margin-right:6px;vertical-align:-1px}
+button{font-family:var(--f-texto);font-weight:500;font-size:15px;color:var(--tinta);background:var(--papel);border:2px solid var(--madeira-escura);border-radius:12px;
+  box-shadow:0 3px 0 var(--madeira-escura);padding:5px 12px;cursor:pointer;touch-action:manipulation}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--madeira-escura)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sol);outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+nav button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:66px;padding:4px 6px 3px;font-size:13px}
+nav button img{width:34px;height:34px}
+nav button[aria-pressed="true"]{background:var(--sol)}
+#palco{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+canvas{display:block;touch-action:none;cursor:pointer}
+#ficha{position:absolute;top:8px;right:8px;width:180px;background:var(--papel);border:2px solid var(--madeira-escura);border-radius:12px;padding:7px 10px;}
+#ficha b{font-weight:600;font-size:16px}
+#ficha small{float:right;opacity:.7;line-height:22px}
+.barra{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:6px;font-size:13px;margin-top:3px}
+.barra div{height:9px;background:#e2d2a8;border:1px solid var(--madeira-escura);border-radius:5px;overflow:hidden}
+.barra span{display:block;height:100%;background:#58b368}
+.barra span.baixo{background:var(--baga)}
+#aviso{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);max-width:92%;background:var(--tinta);color:var(--papel);
+  border-radius:12px;padding:7px 14px;text-align:center;pointer-events:none}
+#fundo{position:fixed;inset:0;background:rgba(27,34,24,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+#caixa{background:var(--papel);border:3px solid var(--madeira-escura);border-radius:16px;box-shadow:0 6px 0 var(--madeira-escura);padding:16px;width:100%;max-width:350px;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px}
+#caixa h2{font-weight:600;font-size:20px;margin:0}
+#caixa p{margin:0}
+#caixa input{font-family:var(--f-texto);font-size:17px;padding:6px 10px;border:2px solid var(--madeira-escura);border-radius:10px;background:#fff;color:var(--tinta);width:100%}
+#caixa ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+#caixa li{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:8px}
+#caixa li img{width:60px;height:44px;object-fit:contain}
+[hidden]{display:none!important}
+
+#ficha .acoes{display:flex;gap:6px;margin-top:8px}#ficha .acoes button{flex:1;font-size:13px;padding:4px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sono{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(14,20,62,.45);color:#fff;text-align:center;font-size:18px;text-shadow:0 2px 4px #000}
+#sono p{margin:0}#sono button{font-size:20px;padding:10px 26px}
+nav{gap:6px;padding:6px 6px}
+nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{width:30px;height:30px}
+.abas{display:flex;gap:6px}.abas button{flex:1}.abas button[aria-pressed="true"]{background:var(--sol)}
+#caixa{max-width:430px}
+#caixa li{grid-template-columns:46px 1fr auto}#caixa li img{width:46px;height:40px}
+#caixa li small{display:block;opacity:.75;font-size:13px;line-height:1.25}
+#caixa .bots{display:flex;flex-direction:column;gap:5px}#caixa .bots button{font-size:13px;padding:4px 8px;white-space:nowrap}
+#caixa li.vazio{display:block;opacity:.7}
+#caixa ul.ajuda li{display:block;line-height:1.35}
+.mini{display:inline-block;width:30px;height:6px;margin-right:4px;background:#e2d2a8;border:1px solid var(--madeira-escura);border-radius:3px;overflow:hidden}
+.mini i{display:block;height:100%;background:#58b368}.mini.baixo i{background:var(--baga)}
+@media(max-width:520px){h1{display:none}header{justify-content:flex-end}#hora{margin-right:auto}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Fazendinha dos Bichos</h1>
+    <span class="chapa" id="hora">Dia</span>
+    <span class="chapa"><i></i><span id="moedas">0</span></span>
+    <button id="loja" type="button">Loja</button>
+    <button id="som" type="button">Som: sim</button>
+  </header>
+  <div id="palco">
+    <canvas id="c"></canvas>
+    <div id="ficha" hidden>
+      <b id="fNome"></b><small id="fTipo"></small>
+      <div class="barra">Comida<div><span id="bComida"></span></div></div>
+      <div class="barra">Água<div><span id="bAgua"></span></div></div>
+      <div class="barra">Carinho<div><span id="bAmor"></span></div></div>
+      <div class="acoes"><button id="bChamar" type="button">Chamar</button><button id="bFalar" type="button">Conversar</button></div>
+    </div>
+    <div id="sono" hidden><p>A fazenda está dormindo.<br>Nada cresce, murcha ou passa fome até acordar.</p><button id="acordar" type="button">Acordar</button></div>
+    <div id="aviso" hidden></div>
+  </div>
+  <nav id="cinto"></nav>
+</div>
+<div id="fundo" hidden><div id="caixa"></div></div>
+
+<script src="arte.js"></script>
+<script src="arte2.js"></script>
+<script src="jogo.js"></script>
+</body>
+</html>
