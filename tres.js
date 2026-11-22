@@ -140,7 +140,9 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       somb(a.x,a.y,sp.w,1-pulo*.04);up(a.x,a.y,()=>{cx.translate(0,-pulo/ESC);sp.draw(cx,a,estado(a));},a.dir*ESC,ESC);}]));
     if(!dormindo)GENTE.forEach(f=>{if(f===P||!f.dentro)L.push([f.y,()=>{if(f===P)anel(f.x,f.y,8*f.e,'#fff','rgba(255,255,255,.2)');else somb(f.x,f.y,11*f.e);up(f.x,f.y,()=>pessoa(cx,f,T,opc(f)),f.e);}]);});
     if(bola&&!bola.leva)L.push([bola.y,()=>{somb(bola.x,bola.y,6);up(bola.x,bola.y,()=>{cx.translate(0,-2.5-bola.z);ICO.bola(cx);});}]);
+    extrasDesenho(L,{up,fl,somb,P3,txt});
     L.sort((a,q)=>a[0]-q[0]).forEach(l=>l[1]());
+    extrasTopo({up,P3,txt});
     if(bola&&bola.leva){const a=bola.leva,sp=SP[a.t];up(a.x+a.dir*(sp.w/2+2.5),a.y,()=>{cx.translate(0,-sp.h*.5);ICO.bola(cx);});}
     if(escV<.5)for(let i=0;i<7;i++){const x=WW*(.08+i*.14)+Math.sin(T*.5+i*2)*34,y=TOP+50+(i*97%(WH-TOP-90))+Math.cos(T*.7+i*3)*20,f=Math.abs(Math.sin(T*13+i)),c=['#f08ca0','#8fd0ff','#ffd166'][i%3];
       cx.globalAlpha=1-escV*2;up(x,y,()=>{cx.translate(0,-9);el(cx,-f*1.5,0,1.6*f+.2,1.9,c,-.3);el(cx,f*1.5,0,1.6*f+.2,1.9,c,.3);el(cx,0,0,.35,1.4,LN,0,0);});cx.globalAlpha=1;}

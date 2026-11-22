@@ -23,6 +23,7 @@ function geraPedido(){
   const n=nivel(),op=[];
   for(const k in PLANTAS)if(PLANTAS[k].v&&NV_PLANTA[k]<=n)op.push(k);
   animais.forEach(a=>{const p=SP[a.t].prod;if(!op.includes(p))op.push(p);});
+  if(n>=2)op.push('peixe');
   if(n>=3)for(const k in RECEITAS)if(Object.keys(RECEITAS[k].ing).every(i=>op.includes(i)))op.push(k);
   const q={},m=R()<.5&&op.length>1?2:1;let val=0;
   for(let i=0;i<m;i++){const k=op[R()*op.length|0];if(q[k])continue;const c=RECEITAS[k]?1:1+(R()*Math.min(3,1+n/2)|0);q[k]=c;val+=VENDA[k]*c;}

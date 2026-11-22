@@ -60,7 +60,7 @@ let animais=[],potes=[],itens=[],coracoes=[],textos=[],bola=null,sel=null,ferram
 let moedas=40,jogadora='',som=true,T=0,relogio=DIA*.05,chamar=0,noite=false,escV=0,sorriso=0,dormindo=false,dormNoite=false,cena='fazenda',decor=null,fogo=0,refeicao=null,tvOn=false;
 let inv={racao:5,s_cenoura:4,s_capim:2},semente='cenoura',casa={parede:0,moveis:[]},familia={ele:'Esposo',filha:'Filha'};
 const canteiros=[];for(let r=0;r<3;r++)for(let c=0;c<4;c++)canteiros.push({x:58+c*32,y:246+r*26,lavrado:true,k:null,g:0,agua:0,seco:0,pronto:0,morta:false});
-const arvores=[[330,214],[376,242],[424,210],[454,266],[344,292],[404,304],[448,330],[520,150],[600,230],[684,140],[560,330],[650,400],[716,300],[500,470],[300,480],[150,450],[700,510]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
+const arvores=[[330,214],[376,242],[424,210],[454,266],[330,430],[440,424],[448,350],[505,176],[600,230],[730,200],[560,330],[650,392],[716,300],[486,500],[300,480],[150,450],[716,526]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
 const pessoaNova=(id,x,y,e,o)=>({id,x,y,tx:x,ty:y,dir:1,ph:0,mov:false,meta:null,rota:[],wait:1,pausa:0,e,o,energia:100,tarefa:'',dentro:false,comeu:false});
 const GENTE=[pessoaNova('mae',240,170,1.2,{saia:1,avental:1,cor:'#e0475a',cab:'#6b3a1f',tranca:1,chapeu:1,fita:'#e0475a'}),
   pessoaNova('ele',424,TOP+30,1.3,{cor:'#e9a23a',cab:'#4a2f1a',chapeu:1,fita:'#3f6fb5',barba:1,f:1.7}),
@@ -124,7 +124,7 @@ function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena==='casa')return;v*=cla
 const voz=a=>tocar(SP[a.t].sfx,a.x,a.y);
 
 /* ---------- gravar ---------- */
-function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
+function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,ninho,peixes,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
   ativo:GENTE.indexOf(P),gente:GENTE.map(p=>[Math.round(p.energia),p.tarefa]),
   h:canteiros.map(c=>({lavrado:c.lavrado,k:c.k,g:c.g,agua:c.agua,seco:c.seco,pronto:c.pronto,morta:c.morta})),arv:arvores.map(a=>[a.hp,a.t]),
   a:animais.map(a=>({t:a.t,n:a.n,c:a.c,comida:a.comida,agua:a.agua,amor:a.amor}))}));}catch(e){}}
@@ -160,6 +160,7 @@ function chao(){
     for(let k=0;k<5;k++){const a=k/5*TAU+i;el(g,x+Math.cos(a)*t,y+Math.sin(a)*t,t*.72,t*.72,c,0,0);}el(g,x,y,t*.5,t*.5,c==='#f6c945'?'#e07a1f':'#f6c945',0,0);}
   pronto(g);
   g.beginPath();g.roundRect(36,228,140,88,7);g.fillStyle='#b9945f';g.fill();g.lineWidth=1.6;g.strokeStyle='#8a5a34';g.stroke();pronto(g);
+  extrasChao(g,r);
   if(F3.ok){F3.chao(G);return;}
   arvore(g,232,TOP-12,r);arvore(g,300,TOP-15,r);arvore(g,462,TOP-13,r);
   fardo(g,70,TOP-12);fardo(g,84,TOP-12);fardo(g,77,TOP-21);
@@ -235,11 +236,11 @@ function pensar(a){
   const ordem=a.comida<=a.agua?['comida','agua']:['agua','comida'];
   for(const k of ordem)if(a[k]<60){let m=null,md=1e9;potes.forEach(p=>{const d=Math.hypot(p.x-a.x,p.y-a.y);if(p.k===k&&d<md){m=p;md=d;}});
     if(m){a.st='seek';a.tg=m;return;}}
-  if(noite&&a.acordado<=0){a.st='sleep';return;}
+  if(noite&&a.acordado<=0){if(a.st!=='sleep')a.st='lar';return;}
   if(a.st!=='idle'&&a.st!=='walk'){a.st='idle';a.wait=.5;}
   if(a.st==='idle'&&(a.wait-=.5)<=0){
     const perto=false;let x,y,n=0;
-    do{x=clamp(perto?Q.x+(R()-.5)*90:14+R()*(WW-28),12,WW-12);y=clamp(perto?Q.y+(R()-.5)*60:TOP+14+R()*(WH-TOP-24),TOP+12,WH-8);}while(naHorta(x,y)&&++n<6);
+    do{x=clamp(perto?Q.x+(R()-.5)*90:14+R()*(WW-28),12,WW-12);y=clamp(perto?Q.y+(R()-.5)*60:TOP+14+R()*(WH-TOP-24),TOP+12,WH-8);}while((naHorta(x,y)||noLago(x,y,1.1))&&++n<6);
     a.tx=x;a.ty=y;a.st='walk';
   }
 }
@@ -247,7 +248,7 @@ function atualizar(a,dt){
   const sp=SP[a.t],f=feliz(a);
   a.comida=Math.max(0,a.comida-dt*70/900);a.agua=Math.max(0,a.agua-dt*70/800);a.amor=Math.max(0,a.amor-dt*70/600);
   a.hop=Math.max(0,a.hop-dt);a.cd=Math.max(0,a.cd-dt);a.acordado=Math.max(0,a.acordado-dt);a.vem=Math.max(0,a.vem-dt);a.fala=Math.max(0,a.fala-dt);a.mov=false;
-  if(f>=55&&(a.prod-=dt)<=0){a.prod=150+R()*100;if(itens.length<14){itens.push({k:sp.prod,x:clamp(a.x-a.dir*(sp.w/2+2),10,WW-10),y:a.y+2,t:0});tocar('pop',a.x,a.y);}}
+  if(f>=55&&(a.prod-=dt)<=0){a.prod=150+R()*100;if(a.t==='galinha'&&ninho<12)ninho++;else if(itens.length<14){itens.push({k:sp.prod,x:clamp(a.x-a.dir*(sp.w/2+2),10,WW-10),y:a.y+2,t:0});tocar('pop',a.x,a.y);}}
   if(a.st!=='sleep'&&a.st!=='eat'&&R()<dt/45)voz(a);
   if((a.th-=dt)<=0){a.th=.5;pensar(a);}
   switch(a.st){
@@ -262,6 +263,7 @@ function atualizar(a,dt){
         if(sp.traz){bola.leva=a;a.st='ret';}else{bola=null;a.amor=Math.min(100,a.amor+12);mimoA(a);a.hop=.3;voz(a);a.st='idle';a.wait=1;}}break;
     case 'ret': if(!bola){a.st='idle';break;}
       if(ir(a,Q.x,Q.y,sp.vel*1.8,dt,18)){bola=null;a.amor=Math.min(100,a.amor+18);mimoA(a);a.hop=.3;voz(a);dizer(Q.x,Q.y-36,'Boa, '+a.n+'!');a.st='idle';a.wait=1;}break;
+    case 'lar': {const l=lar(a);if(ir(a,l.x,l.y,sp.vel*1.2,dt,2)){a.st='sleep';a.dir=1;}break;}
     case 'sleep': break;
     default: if(Math.hypot(Q.x-a.x,Q.y-a.y)<50)a.dir=Q.x>a.x?1:-1; if(f>75&&R()<dt*.2)a.hop=.3;
   }
@@ -272,12 +274,13 @@ function alvoTarefa(f){switch(f.tarefa){
   case 'lavrar':return canteiros.find(c=>!c.lavrado||c.morta);
   case 'colher':return canteiros.find(c=>c.k&&!c.morta&&c.g>=PLANTAS[c.k].t);
   case 'lenha':return arvores.find(a=>a.hp>0);
-  case 'recolher':return itens[0];
+  case 'recolher':return itens[0]||(ninho>0?GALINHEIRO:null);
+  case 'pescar':return peixes>0?MARGEM:null;
   case 'carinho':return animais.filter(a=>a.amor<70).sort((a,b)=>a.amor-b.amor)[0];
   case 'alimentar':return animais.find(a=>(a.comida<50&&tem('racao'))||a.agua<50);}}
 function fazTarefa(f,t){switch(f.tarefa){
   case 'regar':return regarC(t,f);case 'lavrar':return lavrarC(t,f);case 'colher':return colherC(t,f);case 'lenha':return cortar(t,f);
-  case 'recolher':return apanhar(itens.indexOf(t));case 'carinho':return carinho(t,f);
+  case 'recolher':return t===GALINHEIRO?recolheNinho():apanhar(itens.indexOf(t));case 'pescar':return pescaAuto(f);case 'carinho':return carinho(t,f);
   case 'alimentar':return t.comida<50&&tem('racao')?dar(t,'comida',f):dar(t,'agua',f);}}
 function familiaPasso(f,dt){
   f.mov=false;
@@ -286,7 +289,7 @@ function familiaPasso(f,dt){
   if(f.tarefa&&f.energia>0){
     if((f.pausa-=dt)>0)return;const t=alvoTarefa(f);
     if(t){const pl=f.tarefa==='regar'||f.tarefa==='lavrar'||f.tarefa==='colher',ar=f.tarefa==='lenha';
-      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64,dt,2)){f.dir=t.x>f.x?1:-1;fazTarefa(f,t);f.pausa=.9;if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
+      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64,dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=.9;fazTarefa(f,t);if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
       return;}
   }
   if((f.wait-=dt)<=0){f.wait=3+R()*6;const h=f.tarefa&&f.energia>0;f.tx=h?186+R()*60:330+R()*130;f.ty=h?236+R()*70:TOP+14+R()*56;}
@@ -309,10 +312,10 @@ function passo(dt){
   if(baixo&&!travado&&(segue||T-pt.t>.25)){segue=true;const[x,y]=mundo(pt.x,pt.y);alvoAndar(x,y);if(cena==='fazenda')pintar(x,y);}
   P.mov=false;
   if(P.rota.length){if(ir(P,P.rota[0][0],P.rota[0][1],84,dt,1.5))P.rota.shift();}
-  else if(ir(P,P.tx,P.ty,84,dt,1)&&P.meta){const m=P.meta;P.meta=null;m==='casa'?entrar():sair();}
+  else if(ir(P,P.tx,P.ty,84,dt,1)&&P.meta){const m=P.meta;P.meta=null;m==='casa'?entrar():m==='pescar'?pescar():sair();}
   if(cena==='fazenda'&&P.mov&&Math.abs(P.x-400)<7&&P.y<TOP+9){P.meta=null;entrar();}
   Q=cena==='fazenda'?P:PORTA;
-  crescer(dt);refeicoes();diaNovo();
+  crescer(dt);refeicoes();diaNovo();extrasPasso(dt);
   if(bola){
     if(!bola.chao){bola.t+=dt/.6;const k=Math.min(1,bola.t);bola.x=bola.sx+(bola.tx-bola.sx)*k;bola.y=bola.sy+(bola.ty-bola.sy)*k;bola.z=Math.sin(Math.PI*k)*26;if(k>=1)bola.chao=true;}
     else if(!bola.de&&(bola.vida-=dt)<=0)bola=null;
@@ -364,6 +367,7 @@ function toque(x,y){
   if(cena==='casa')return toqueCasa(x,y);
   for(let i=itens.length-1;i>=0;i--)if(bate(itens[i],22,14,x,y)){apanhar(i);return;}
   if(bate({x:400,y:TOP+1},22,28,x,y)){P.tx=400;P.ty=TOP+7;P.meta='casa';return;}
+  if(extrasToque(x,y))return;
   const gx=clamp(x,8,WW-8),gy=clamp(y,TOP+6,WH-5);
   if(ferramenta==='bola'){atirar(gx,gy);return;}
   let alvo=null;animais.forEach(a=>{const s=SP[a.t];if(bate(a,s.w+6,s.h+3,x,y)&&(!alvo||a.y>alvo.y))alvo=a;});
@@ -584,7 +588,7 @@ function mochila(aba){
   else h+='<ul class="ajuda"><li><b>Andar:</b> toque ou arraste o dedo (ou o mouse) e a pessoa segue.</li><li><b>Ver mais longe:</b> use os botões + e −, a roda do mouse ou dois dedos. O botão Tudo mostra a fazenda inteira.</li><li><b>Família:</b> toque no nome lá em cima para trocar de pessoa ou dar tarefas ao pai, à filha e à mãe. Cada um tem energia, que se gasta a trabalhar.</li>'+
     '<li><b>Refeições:</b> a vovó chama para o almoço e para a janta. Quem estiver em tarefas vai sozinho; quem está nas suas mãos tem de ir até a sala. A vovó usa três coisas da mochila (ovos, leite, colheitas): com a despensa cheia, a energia volta toda.</li>'+
     '<li><b>Horta:</b> Enxada prepara a terra, Semente planta (toque de novo em Semente para escolher outra), Regador rega. Sem água a planta para de crescer e murcha. Depois de madura, colha com a Mão antes de a barra acabar.</li>'+
-    '<li><b>Bichos:</b> uma ração e água por dia chegam. Capim e trigo viram ração. Bichos felizes deixam ovos, leite e lã.</li><li><b>Machado:</b> corte árvores para ter madeira. Elas voltam a crescer.</li>'+
+    '<li><b>Bichos:</b> uma ração e água por dia chegam. Capim e trigo viram ração. Bichos felizes deixam ovos, leite e lã.</li><li><b>Casas dos bichos:</b> à noite a vaca vai para o curral, as galinhas para o galinheiro e os cachorros para as casinhas. Os ovos ficam no galinheiro: toque nele para recolher.</li><li><b>Lago:</b> toque no lago com a Mão para pescar. Peixe vende-se ou vai para a panela. Com a Ração selecionada, o toque alimenta os peixes e nascem mais.</li><li><b>Louro:</b> o papagaio do viveiro vê tudo. Toque nele para saber as novidades; ele também avisa sozinho quando há algo urgente.</li><li><b>Machado:</b> corte árvores para ter madeira. Elas voltam a crescer.</li>'+
     '<li><b>Pedidos e nível:</b> toque em Nível, lá em cima. Todas as manhãs os vizinhos fazem três pedidos que pagam mais do que a loja. Cada ação dá pontos; ao subir de nível a loja ganha sementes, bichos e móveis novos.</li><li><b>Loja:</b> compre bichos, sementes e móveis, e venda na aba Vender o que a fazenda produz.</li><li><b>Casa:</b> cozinha, sala, quarto do casal e quarto da filha. Toque no fogão a lenha para cozinhar, na TV para ligar, e use Decorar para pôr móveis.</li>'+
     '<li><b>Dormir:</b> de dia, pausa o jogo. À noite, todos dormem, acordam de manhã e com a energia cheia. Use antes de sair: se sair sem dormir, o tempo continua e a horta pode murchar.</li></ul>';
   abrir(h+'<button type="button" id="sairM">Fechar</button>');ligar(mochila);
@@ -638,10 +642,11 @@ setInterval(gravar,10000);
 let antes=0;
 function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt);desenhar();requestAnimationFrame(quadro);}
 (function(){
-  F3.liga();cinto();ajustar();
+  extrasInicio();F3.liga();cinto();ajustar();
   let novidades=false;const s=ler();
   if(s&&s.jogadora&&Array.isArray(s.a)&&s.a.length){
-    jogadora=s.jogadora;moedas=s.moedas|0;xp=s.xp===undefined?120:+s.xp||0;diaPed=s.diaPed===undefined?-1:s.diaPed|0;
+    jogadora=s.jogadora;moedas=s.moedas|0;ninho=s.ninho|0;peixes=s.peixes===undefined?6:s.peixes|0;if(s.peixes===undefined)novidades=true;
+    xp=s.xp===undefined?120:+s.xp||0;diaPed=s.diaPed===undefined?-1:s.diaPed|0;
     pedidos=Array.isArray(s.pedidos)?s.pedidos.filter(p=>p&&p.q&&Object.keys(p.q).every(k=>NOME[k])):[];if(s.xp===undefined)novidades=true;
     som=s.som!==false;$('som').textContent=som?'Som':'Mudo';
     s.a.forEach(o=>{if(!SP[o.t])return;const a=novo(o.t,String(o.n).slice(0,14),o.c|0);STATS.forEach(k=>a[k]=clamp(+o[k]||50,s.v?0:60,100));animais.push(a);});
