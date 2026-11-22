@@ -101,7 +101,7 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       rd.shadowMap.enabled=false;rd.render(scH,cam3);}
     else{pas.rotation.z=-T*.6;const n=escV;sc.background.setRGB(.75-.68*n,.9-.8*n,1-.72*n);sc.fog.color.copy(sc.background);rd.shadowMap.enabled=true;rd.render(sc,cam3);}
     cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);
-    cena==='casa'?desenhoCasa():desenho();
+    cena==='casa'?desenhoCasa():desenho();climaDesenho();
     const alto=(x,y)=>{const p=P3(x,y+24);p.sy-=24*p.k;return p;},cw=cv.width;
     coracoes.forEach(c=>{if(c.t>0){const p=alto(c.x+Math.sin(c.t*6)*1.5,c.y-c.t*18),e=p.k*(.5+Math.min(1,c.t*5)*.4);cx.setTransform(e,0,0,e,p.sx,p.sy);pronto(cx);cx.globalAlpha=1-c.t*c.t;ICO.amor(cx);cx.globalAlpha=1;}});
     textos.forEach(t=>{const p=alto(t.x,t.y-t.t*10),k=Math.max(p.k,cw/420);cx.setTransform(k,0,0,k,0,0);cx.font='600 6.5px Fredoka,"Trebuchet MS",sans-serif';const w=cx.measureText(t.s).width/2+3;
@@ -140,7 +140,7 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       somb(a.x,a.y,sp.w,1-pulo*.04);up(a.x,a.y,()=>{cx.translate(0,-pulo/ESC);sp.draw(cx,a,estado(a));},a.dir*ESC,ESC);}]));
     if(!dormindo)GENTE.forEach(f=>{if(f===P||!f.dentro)L.push([f.y,()=>{if(f===P)anel(f.x,f.y,8*f.e,'#fff','rgba(255,255,255,.2)');else somb(f.x,f.y,11*f.e);up(f.x,f.y,()=>pessoa(cx,f,T,opc(f)),f.e);}]);});
     if(bola&&!bola.leva)L.push([bola.y,()=>{somb(bola.x,bola.y,6);up(bola.x,bola.y,()=>{cx.translate(0,-2.5-bola.z);ICO.bola(cx);});}]);
-    extrasDesenho(L,{up,fl,somb,P3,txt});
+    extrasDesenho(L,{up,fl,somb,P3,txt});vidaDesenho(L,{up,fl,somb,P3,txt});
     L.sort((a,q)=>a[0]-q[0]).forEach(l=>l[1]());
     extrasTopo({up,P3,txt});
     if(bola&&bola.leva){const a=bola.leva,sp=SP[a.t];up(a.x+a.dir*(sp.w/2+2.5),a.y,()=>{cx.translate(0,-sp.h*.5);ICO.bola(cx);});}

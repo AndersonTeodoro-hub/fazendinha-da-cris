@@ -31,14 +31,14 @@ function geraPedido(){
 }
 function diaNovo(){
   const d=Math.floor(relogio/DIA);if(d===diaPed||!jogadora)return;
-  const primeiro=diaPed<0;diaPed=d;pedidos=[geraPedido(),geraPedido(),geraPedido()];rotNivel();gravar();
-  if(!primeiro)aviso('Chegaram três pedidos novos dos vizinhos. Toque em Nível para ver.');
+  const primeiro=diaPed<0;diaPed=d;pedidos=[geraPedido(),geraPedido(),geraPedido()];const extra=vidaDia(d);rotNivel();gravar();
+  if(!primeiro||extra)aviso((primeiro?'':'Bom dia! Chegaram três pedidos novos dos vizinhos.')+extra);
 }
 function pedidosM(){
   const n=nivel(),a=xpDe(n),b=xpDe(n+1);
   let h='<h2>Pedidos e nível</h2><p><b>Nível '+n+'</b> · '+Math.floor(xp-a)+' de '+(b-a)+' pontos <i class="mini larga"><i style="width:'+(xp-a)/(b-a)*100+'%"></i></i></p><p><small>Ganha pontos a plantar, colher, tratar dos bichos, cozinhar e entregar pedidos. '+proximo(n)+'</small></p><ul>';
   if(!pedidos.length)h+='<li class="vazio">Os pedidos de hoje estão todos entregues. Amanhã de manhã chegam novos.</li>';
-  pedidos.forEach((p,i)=>{h+='<li class="pessoa"><span><b>'+p.quem+' pede</b><small>'+Object.keys(p.q).map(k=>p.q[k]+' '+NOME[k].toLowerCase()+' (tem '+tem(k)+')').join(', ')+'</small><small>Paga '+p.moedas+' moedas e '+p.xp+' pontos</small></span><span class="bots"><button type="button" data-ent="'+i+'"'+(temPedido(p)?'':' disabled')+'>Entregar</button></span></li>';});
+  pedidos.forEach((p,i)=>{h+='<li class="pessoa"><span><b>'+p.quem+' pede</b><small>'+Object.keys(p.q).map(k=>qtd(p.q[k],k)+' (tem '+tem(k)+')').join(', ')+'</small><small>Paga '+p.moedas+' moedas e '+p.xp+' pontos</small></span><span class="bots"><button type="button" data-ent="'+i+'"'+(temPedido(p)?'':' disabled')+'>Entregar</button></span></li>';});
   abrir(h+'</ul><p><small>Os pedidos mudam todas as manhãs. O que não for entregue perde-se.</small></p><button type="button" id="sairM">Fechar</button>');ligar(pedidosM);
   em('[data-ent]',d=>{const p=pedidos[+d.ent];if(!p||!temPedido(p))return;for(const k in p.q)soma(k,-p.q[k]);moedas+=p.moedas;pedidos.splice(+d.ent,1);tocar('moeda');ganha(p.xp);mudou();pedidosM();});
 }
