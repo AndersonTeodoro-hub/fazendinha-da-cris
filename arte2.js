@@ -1,7 +1,7 @@
 /* ---------- pessoas ---------- */
 function pessoa(g,p,t,o){
   const a=p.mov?Math.sin(p.ph*1.3):0,f=o.f||0,bob=p.mov?Math.abs(Math.cos(p.ph*1.3))*.7:Math.sin(t*2+f)*.15,
-    m={pisca:(t+f)%3.3<.12,contente:o.contente},cab=o.cab,pele='#f6cfae',cor=o.cor,jeans='#3f6fb5';
+    m={pisca:(t+f)%3.3<.12,contente:o.contente,dorme:o.dorme},cab=o.cab,pele='#f6cfae',cor=o.cor,jeans='#3f6fb5';
   for(const s of[-1,1]){const l=Math.max(0,a*s)*1.8,x=s*2;
     g.beginPath();g.roundRect(x-(o.saia?.95:1.6),-8.6-l,o.saia?1.9:3.2,5.8,.8);g.fillStyle=o.saia?pele:jeans;g.fill();g.stroke();
     g.beginPath();g.roundRect(x-1.6,-3.4-l,3.5,3.4,[1,1.6,1,1]);g.fillStyle='#7a4a2a';g.fill();g.stroke();}
@@ -23,14 +23,16 @@ function pessoa(g,p,t,o){
   }
   if(o.tranca)for(const s of[-1,1]){tubo(g,cab,1.5,g=>{g.moveTo(s*4.6,-19);g.quadraticCurveTo(s*5.6,-16,s*4.9,-13.2);});el(g,s*4.9,-12.8,.9,.7,'#f6c945');}
   if(o.laco)for(const s of[-1,1]){el(g,s*5.6,-21.4,2,2.3,cab,s*.4);el(g,s*4.5,-22.6,.9,.9,'#e0475a');}
+  if(o.coque)el(g,0,-25.3,2.8,2.4,cab);
   el(g,0,-20,4.7,4.5,pele);
   if(o.barba){g.beginPath();g.ellipse(0,-19.2,4.5,4.2,0,.2,Math.PI-.2);g.quadraticCurveTo(0,-17.6,4.4,-18.4);g.fillStyle='rgba(74,47,26,.5)';g.fill();}
   if(o.saia){g.beginPath();g.ellipse(0,-21.6,4.75,3.3,0,Math.PI,0);g.quadraticCurveTo(2,-20.4,0,-21.2);g.quadraticCurveTo(-2.4,-20.2,-4.75,-21.6);g.fillStyle=cab;g.fill();g.stroke();}
   else{g.beginPath();g.ellipse(0,-21.9,4.75,3,0,Math.PI,0);g.closePath();g.fillStyle=cab;g.fill();g.stroke();}
   const d=p.dir*.5;olho(g,-1.7+d,-19.5,.72,m);olho(g,1.7+d,-19.5,.72,m);
+  if(o.oculos){g.lineWidth=.35;el(g,-1.7+d,-19.5,1.55,1.45,'rgba(255,255,255,.28)');el(g,1.7+d,-19.5,1.55,1.45,'rgba(255,255,255,.28)');g.beginPath();g.moveTo(-.2+d,-19.6);g.lineTo(.2+d,-19.6);g.stroke();pronto(g);}
   if(o.saia){el(g,-2.9+d,-18,1,.6,'rgba(232,80,110,.35)',0,0);el(g,2.9+d,-18,1,.6,'rgba(232,80,110,.35)',0,0);}
   g.beginPath();g.moveTo(-1.1+d,-17.6);g.quadraticCurveTo(d,-16.6,1.1+d,-17.6);g.stroke();
-  if(o.chapeu){
+  if(o.chapeu&&!o.dorme){
     el(g,0,-23.3,7.8,2.1,luz(g,'#f0cf6b',-25.4,-21.2,.12));
     g.beginPath();g.ellipse(0,-23.8,4.5,3.9,0,Math.PI,0);g.closePath();g.fillStyle='#f0cf6b';g.fill();g.stroke();
     g.beginPath();g.rect(-4.4,-25.2,8.8,1.3);g.fillStyle=o.fita;g.fill();g.stroke();

@@ -70,12 +70,19 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
 .mini{display:inline-block;width:30px;height:6px;margin-right:4px;background:#e2d2a8;border:1px solid var(--madeira-escura);border-radius:3px;overflow:hidden}
 .mini i{display:block;height:100%;background:#58b368}.mini.baixo i{background:var(--baga)}
 @media(max-width:520px){h1{display:none}header{justify-content:flex-end}#hora{margin-right:auto}}
+#quem.baixo{background:var(--baga);color:#fff}
+#caixa select{font-family:var(--f-texto);font-size:15px;padding:5px 6px;border:2px solid var(--madeira-escura);border-radius:10px;background:#fff;color:var(--tinta);width:100%;margin-top:2px}
+#caixa li.pessoa{grid-template-columns:1fr auto;padding:8px 0;border-top:1px solid #dcc9a0}
+#caixa li.pessoa label{display:block;font-size:13px;margin-top:6px}
+.abas{flex-wrap:wrap}
+@media(max-width:520px){#hora{margin-right:0}#quem{margin-right:auto}header{gap:5px;padding:6px 6px}header button,.chapa{padding:4px 8px;font-size:14px}}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <h1>Fazendinha dos Bichos</h1>
+    <button id="quem" type="button">Família</button>
     <span class="chapa" id="hora">Dia</span>
     <span class="chapa"><i></i><span id="moedas">0</span></span>
     <button id="loja" type="button">Loja</button>
@@ -90,15 +97,17 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
       <div class="barra">Carinho<div><span id="bAmor"></span></div></div>
       <div class="acoes"><button id="bChamar" type="button">Chamar</button><button id="bFalar" type="button">Conversar</button></div>
     </div>
-    <div id="sono" hidden><p>A fazenda está dormindo.<br>Nada cresce, murcha ou passa fome até acordar.</p><button id="acordar" type="button">Acordar</button></div>
+    <div id="sono" hidden><p id="sonoTxt"></p><button id="acordar" type="button">Acordar</button></div>
     <div id="aviso" hidden></div>
   </div>
   <nav id="cinto"></nav>
 </div>
 <div id="fundo" hidden><div id="caixa"></div></div>
 
-<script src="arte.js?v=3"></script>
-<script src="arte2.js?v=3"></script>
-<script src="jogo.js?v=3"></script>
+<script src="arte.js?v=4"></script>
+<script src="arte2.js?v=4"></script>
+<script src="arte3.js?v=4"></script>
+<script src="arte4.js?v=4"></script>
+<script src="jogo.js?v=4"></script>
 </body>
 </html>
