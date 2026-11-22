@@ -1,5 +1,5 @@
 const cv=$('c'),cx=cv.getContext('2d');
-const WW=480,WH=360,TOP=64,DIA=720,ESC=1.25,REGA=110,SECA=260,REBROTA=900;
+const WW=760,WH=560,TOP=64,DIA=720,ESC=1.25,REGA=110,SECA=260,REBROTA=900;
 const PORTA={x:400,y:TOP+9,dir:1};
 let W=340,H=200,S=3,G=null,GS=0;const cam={x:0,y:0};
 for(const t in SP){SP[t].w*=ESC;SP[t].h*=ESC;}SP.ovelha.som='Bééé!';
@@ -60,7 +60,7 @@ let animais=[],potes=[],itens=[],coracoes=[],textos=[],bola=null,sel=null,ferram
 let moedas=40,jogadora='',som=true,T=0,relogio=DIA*.05,chamar=0,noite=false,escV=0,sorriso=0,dormindo=false,dormNoite=false,cena='fazenda',decor=null,fogo=0,refeicao=null,tvOn=false;
 let inv={racao:5,s_cenoura:4,s_capim:2},semente='cenoura',casa={parede:0,moveis:[]},familia={ele:'Esposo',filha:'Filha'};
 const canteiros=[];for(let r=0;r<3;r++)for(let c=0;c<4;c++)canteiros.push({x:58+c*32,y:246+r*26,lavrado:true,k:null,g:0,agua:0,seco:0,pronto:0,morta:false});
-const arvores=[[330,214],[376,242],[424,210],[454,266],[344,292],[404,304],[448,330]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
+const arvores=[[330,214],[376,242],[424,210],[454,266],[344,292],[404,304],[448,330],[520,150],[600,230],[684,140],[560,330],[650,400],[716,300],[500,470],[300,480],[150,450],[700,510]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
 const pessoaNova=(id,x,y,e,o)=>({id,x,y,tx:x,ty:y,dir:1,ph:0,mov:false,meta:null,rota:[],wait:1,pausa:0,e,o,energia:100,tarefa:'',dentro:false,comeu:false});
 const GENTE=[pessoaNova('mae',240,170,1.2,{saia:1,avental:1,cor:'#e0475a',cab:'#6b3a1f',tranca:1,chapeu:1,fita:'#e0475a'}),
   pessoaNova('ele',424,TOP+30,1.3,{cor:'#e9a23a',cab:'#4a2f1a',chapeu:1,fita:'#3f6fb5',barba:1,f:1.7}),
@@ -141,7 +141,7 @@ function ajustar(){
 function chao(){
   G=document.createElement('canvas');G.width=Math.round(WW*GS);G.height=Math.round(WH*GS);const g=G.getContext('2d');g.scale(GS,GS);pronto(g);
   let s=11;const r=()=>(s=s*16807%2147483647)/2147483647;
-  const q=g.createLinearGradient(0,0,0,WH);q.addColorStop(0,'#86d36b');q.addColorStop(1,'#5db650');g.fillStyle=q;g.fillRect(0,0,WW,WH);
+  const q=g.createLinearGradient(0,0,0,WH);q.addColorStop(0,'#7acd66');q.addColorStop(1,'#6cc45c');g.fillStyle=q;g.fillRect(0,0,WW,WH);
   for(let i=0;i<150;i++){const x=r()*WW,y=r()*WH,rr=14+r()*26,k=g.createRadialGradient(x,y,0,x,y,rr),c=r()<.5?'40,110,50':'190,240,140';
     k.addColorStop(0,'rgba('+c+',.13)');k.addColorStop(1,'rgba('+c+',0)');g.fillStyle=k;g.fillRect(x-rr,y-rr,rr*2,rr*2);}
   g.lineWidth=.28;for(const c of['#4f9f45','#6cc45c','#3f8c3d','#8fdc74','#59ad4c']){g.strokeStyle=c;g.beginPath();for(let i=0,n=WW*WH/12;i<n;i++){const x=r()*WW,y=r()*WH;g.moveTo(x,y);g.lineTo(x+(r()-.5)*1.2,y-.8-r()*1.8);}g.stroke();}
@@ -235,11 +235,10 @@ function pensar(a){
   const ordem=a.comida<=a.agua?['comida','agua']:['agua','comida'];
   for(const k of ordem)if(a[k]<60){let m=null,md=1e9;potes.forEach(p=>{const d=Math.hypot(p.x-a.x,p.y-a.y);if(p.k===k&&d<md){m=p;md=d;}});
     if(m){a.st='seek';a.tg=m;return;}}
-  if(Math.min(a.comida,a.agua,a.amor)<30){a.st='beg';return;}
   if(noite&&a.acordado<=0){a.st='sleep';return;}
   if(a.st!=='idle'&&a.st!=='walk'){a.st='idle';a.wait=.5;}
   if(a.st==='idle'&&(a.wait-=.5)<=0){
-    const perto=sp.segue&&a.amor>55&&R()<.6;let x,y,n=0;
+    const perto=false;let x,y,n=0;
     do{x=clamp(perto?Q.x+(R()-.5)*90:14+R()*(WW-28),12,WW-12);y=clamp(perto?Q.y+(R()-.5)*60:TOP+14+R()*(WH-TOP-24),TOP+12,WH-8);}while(naHorta(x,y)&&++n<6);
     a.tx=x;a.ty=y;a.st='walk';
   }
@@ -301,16 +300,17 @@ function refeicoes(){
   else if(!m&&refeicao){refeicao=null;GENTE.forEach(p=>p.comeu=false);}
   if(refeicao&&cena==='casa'&&!P.comeu&&P.x>154&&P.y<112){P.comeu=true;P.energia=Math.max(P.energia,refeicao.q);mimo(P.x,P.y-36);dizer(P.x,P.y-40,'Que delícia, vovó!');tocar('comer');}
 }
-let baixo=false,segue=false,pt={x:0,y:0,sx:0,sy:0,t:0};const pintados=new Set();
+let baixo=false,segue=false,travado=false,pt={x:0,y:0,sx:0,sy:0,t:0};const pintados=new Set();
 function passo(dt){
   T+=dt;sorriso=Math.max(0,sorriso-dt);escV+=((dormindo?1:fase())-escV)*Math.min(1,dt*3);
   coracoes=coracoes.filter(c=>(c.t+=dt)<1);textos=textos.filter(t=>(t.t+=dt)<1.5);
   if(dormindo)return;
   relogio+=dt;noite=fase()>.6;chamar=Math.max(0,chamar-dt);
-  if(baixo&&(segue||T-pt.t>.25)){segue=true;const[x,y]=mundo(pt.x,pt.y);alvoAndar(x,y);if(cena==='fazenda')pintar(x,y);}
+  if(baixo&&!travado&&(segue||T-pt.t>.25)){segue=true;const[x,y]=mundo(pt.x,pt.y);alvoAndar(x,y);if(cena==='fazenda')pintar(x,y);}
   P.mov=false;
   if(P.rota.length){if(ir(P,P.rota[0][0],P.rota[0][1],84,dt,1.5))P.rota.shift();}
   else if(ir(P,P.tx,P.ty,84,dt,1)&&P.meta){const m=P.meta;P.meta=null;m==='casa'?entrar():sair();}
+  if(cena==='fazenda'&&P.mov&&Math.abs(P.x-400)<7&&P.y<TOP+9){P.meta=null;entrar();}
   Q=cena==='fazenda'?P:PORTA;
   crescer(dt);refeicoes();diaNovo();
   if(bola){
@@ -386,7 +386,7 @@ const noChao=(x,y)=>Object.values(SALAS).some(r=>x>r[0]-2&&x<r[2]+2&&y>r[1]-4&&y
 function toqueCasa(x,y){
   if(decor==='tirar'){const m=movelEm(x,y);if(m){casa.moveis.splice(casa.moveis.indexOf(m),1);soma('m_'+m.k,1);tocar('pop');}else{decor=null;aviso('Móveis guardados na mochila.');}return;}
   if(decor){const d=MOVEIS[decor];
-    if(d.parede?!((y>8&&y<30)||(y>124&&y<146)):!noChao(x,y)){aviso(d.parede?'Este vai na parede.':'Este vai no chão de uma das divisões.');return;}
+    if(d.parede?!(y>6&&y<32):!noChao(x,y)){aviso(d.parede?'Este vai na parede.':'Este vai no chão de uma das divisões.');return;}
     casa.moveis.push({k:decor,x:Math.round(x),y:Math.round(y)});soma('m_'+decor,-1);tocar('pop');if(!tem('m_'+decor))decor=null;return;}
   if(x>166&&x<194&&y<49){rotaCasa(P,180,48);P.meta='sair';return;}
   if(Math.abs(x-VOVO.x)<8&&y>36&&y<71){const ph=relogio%DIA/DIA,f=ph<.36?.36-ph:ph<.70?.70-ph:1.36-ph;mimo(VOVO.x,32);tocar('carinho');
@@ -396,8 +396,8 @@ function toqueCasa(x,y){
   if(Math.abs(x-44)<25&&y>170&&y<208){if(noite)dormir();else aviso('A cama é para a noite. À noite, dormir aqui recupera a energia de todos e passa para a manhã.');return;}
   alvoAndar(x,y);
 }
-function entrar(){cena='casa';P.rota=[];P.x=P.tx=180;P.y=P.ty=52;sel=null;cam.x=clamp(P.x-W/2,0,Math.max(0,CW-W));cam.y=0;cinto();tocar('porta');}
-function sair(){cena='fazenda';decor=null;P.rota=[];P.x=P.tx=400;P.y=P.ty=TOP+10;cam.x=clamp(P.x-W/2,0,WW-W);cam.y=0;cinto();tocar('porta');}
+function entrar(){cena='casa';baixo=false;P.rota=[];P.x=P.tx=180;P.y=P.ty=52;sel=null;cam.x=clamp(P.x-W/2,0,Math.max(0,CW-W));cam.y=0;cinto();tocar('porta');}
+function sair(){cena='fazenda';decor=null;P.rota=[];P.x=P.tx=400;P.y=P.ty=TOP+20;cam.x=clamp(P.x-W/2,0,WW-W);cam.y=0;baixo=false;cinto();tocar('porta');}
 function dormir(){dormindo=true;dormNoite=noite;bola=null;sel=null;animais.forEach(a=>a.st='sleep');
   $('sonoTxt').innerHTML=dormNoite?'Boa noite! A família toda está dormindo.<br>Ao acordar é manhã e todos têm a energia cheia.':'A fazenda está em pausa.<br>Nada cresce, murcha ou passa fome até acordar.';
   $('sono').hidden=false;gravar();osc(500,.5,{f2:250,v:.35});}
@@ -417,8 +417,8 @@ function controlar(i){
 /* ---------- entrada ---------- */
 let bate=(e,w,h,x,y)=>Math.abs(x-e.x)<w/2&&y>e.y-h&&y<e.y+4;
 let mundo=(sx,sy)=>{const r=cv.getBoundingClientRect();return[(sx-r.left)/r.width*W+cam.x,(sy-r.top)/r.height*H+cam.y];};
-cv.addEventListener('pointerdown',e=>{baixo=true;segue=false;pintados.clear();pt={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:T};try{cv.setPointerCapture(e.pointerId);}catch(_){}
-  audio();const[x,y]=mundo(e.clientX,e.clientY);toque(x,y);e.preventDefault();});
+cv.addEventListener('pointerdown',e=>{if(F3.dedos>0){baixo=false;return;}baixo=true;segue=false;travado=false;pintados.clear();pt={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:T};try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  audio();const[x,y]=mundo(e.clientX,e.clientY);toque(x,y);travado=!!P.meta;e.preventDefault();});
 cv.addEventListener('pointermove',e=>{if(!baixo)return;pt.x=e.clientX;pt.y=e.clientY;if(Math.hypot(pt.x-pt.sx,pt.y-pt.sy)>8)segue=true;});
 for(const n of['pointerup','pointercancel'])cv.addEventListener(n,()=>{baixo=false;});
 
@@ -495,8 +495,7 @@ function desCasa(){
   if(decor==='tirar')escrever('Toque num móvel para guardar',cam.x+W/2,cam.y+H-6,'#f6c945',6);
 }
 function desenhar(){
-  if(cena!=='casa'&&F3.ok){F3.quadro();return hud();}
-  if(F3.c3)F3.c3.style.visibility='hidden';
+  if(F3.ok){F3.quadro();return hud();}
   cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#2a1f24';cx.fillRect(0,0,cv.width,cv.height);
   cx.setTransform(S,0,0,S,-Math.round(cam.x*S),-Math.round(cam.y*S));pronto(cx);
   cena==='casa'?desCasa():desFazenda();
@@ -582,7 +581,7 @@ function mochila(aba){
   else if(abaMochila==='bichos'){h+='<button type="button" id="todos">Chamar todos</button><ul>';
     animais.forEach((a,i)=>{h+='<li><img alt="" src="'+img(a.t)+'"><span><b>'+esc(a.n)+'</b><small>'+STATS.map(k=>'<i class="mini'+(a[k]<30?' baixo':'')+'" title="'+k+'"><i style="width:'+a[k]+'%"></i></i>').join('')+'</small></span><span class="bots"><button type="button" data-chamar="'+i+'">Chamar</button></span></li>';});
     h+='</ul>';}
-  else h+='<ul class="ajuda"><li><b>Andar:</b> toque ou arraste o dedo (ou o mouse) e a pessoa segue.</li><li><b>Família:</b> toque no nome lá em cima para trocar de pessoa ou dar tarefas ao pai, à filha e à mãe. Cada um tem energia, que se gasta a trabalhar.</li>'+
+  else h+='<ul class="ajuda"><li><b>Andar:</b> toque ou arraste o dedo (ou o mouse) e a pessoa segue.</li><li><b>Ver mais longe:</b> use os botões + e −, a roda do mouse ou dois dedos. O botão Tudo mostra a fazenda inteira.</li><li><b>Família:</b> toque no nome lá em cima para trocar de pessoa ou dar tarefas ao pai, à filha e à mãe. Cada um tem energia, que se gasta a trabalhar.</li>'+
     '<li><b>Refeições:</b> a vovó chama para o almoço e para a janta. Quem estiver em tarefas vai sozinho; quem está nas suas mãos tem de ir até a sala. A vovó usa três coisas da mochila (ovos, leite, colheitas): com a despensa cheia, a energia volta toda.</li>'+
     '<li><b>Horta:</b> Enxada prepara a terra, Semente planta (toque de novo em Semente para escolher outra), Regador rega. Sem água a planta para de crescer e murcha. Depois de madura, colha com a Mão antes de a barra acabar.</li>'+
     '<li><b>Bichos:</b> uma ração e água por dia chegam. Capim e trigo viram ração. Bichos felizes deixam ovos, leite e lã.</li><li><b>Machado:</b> corte árvores para ter madeira. Elas voltam a crescer.</li>'+
@@ -622,7 +621,7 @@ function boasVindas(){
   abrir('<h2>Fazendinha dos Bichos</h2><p>Os bichos estão à espera de alguém que cuide deles.</p><label for="nomeDela">Qual é o seu nome?</label>'+
     '<input id="nomeDela" maxlength="14" autocomplete="off"><button type="button" id="ir">Começar</button>');
   $('ir').onclick=()=>{jogadora=$('nomeDela').value.trim()||'amiga';audio();
-    animais=[novo('cao','Thor',0),novo('cao','Mel',1),novo('galinha','Pipoca',0),novo('vaca','Mimosa',0)];chamar=4;fechar();gravar();tocar('moeda');mochila('ajuda');};
+    animais=[novo('cao','Thor',0),novo('cao','Mel',1),novo('galinha','Pipoca',0),novo('vaca','Mimosa',0)];fechar();gravar();tocar('moeda');mochila('ajuda');};
 }
 $('loja').onclick=()=>{tocar('clique');loja();};
 $('quem').onclick=()=>{tocar('clique');familiaM();};
@@ -652,7 +651,7 @@ function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt)
       if(s.v<4){novidades=true;moedas+=70*(bruto.m_fogao|0);((s.casa||{}).moveis||[]).forEach(m=>{if(m.k==='fogao')moedas+=70;else bruto['m_'+m.k]=(bruto['m_'+m.k]|0)+1;});if(s.casa)s.casa.moveis=[];}
       inv=Object.fromEntries(Object.entries(bruto).filter(([k,v])=>v>0&&(NOME[k]||(k[0]==='s'&&PLANTAS[k.slice(2)])||(k[0]==='m'&&MOVEIS[k.slice(2)]))));
       if(PLANTAS[s.semente])semente=s.semente;if(s.familia)familia=Object.assign(familia,s.familia);
-      if(s.casa&&Array.isArray(s.casa.moveis))casa={parede:s.casa.parede|0,moveis:s.casa.moveis.filter(m=>MOVEIS[m.k])};
+      if(s.casa&&Array.isArray(s.casa.moveis))casa={parede:s.casa.parede|0,moveis:s.casa.moveis.filter(m=>{if(!MOVEIS[m.k])return false;if(MOVEIS[m.k].parede&&m.y>40){inv['m_'+m.k]=(inv['m_'+m.k]|0)+1;return false;}return true;})};
       (s.h||[]).forEach((o,i)=>{if(canteiros[i]&&(!o.k||PLANTAS[o.k]))Object.assign(canteiros[i],o);});
       (s.arv||[]).forEach((o,i)=>{if(arvores[i]){arvores[i].hp=o[0];arvores[i].t=o[1];}});
       (s.gente||[]).forEach((o,i)=>{if(GENTE[i]){GENTE[i].energia=clamp(+o[0]||0,0,100);GENTE[i].tarefa=TAREFAS[o[1]]?o[1]:'';}});
@@ -660,9 +659,9 @@ function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt)
       if(dormindo){animais.forEach(a=>a.st='sleep');$('sono').hidden=false;$('sonoTxt').textContent='A fazenda está dormindo.';}
       else{const fora=clamp((Date.now()-s.t)/1000,0,DIA*4);let m=0;for(let x=0;x<fora;x+=5)m+=crescer(5);relogio+=fora;
         animais.forEach(a=>{a.comida=Math.max(15,a.comida-fora*70/900);a.agua=Math.max(15,a.agua-fora*70/800);a.amor=Math.max(15,a.amor-fora*70/600);});
-        chamar=4;aviso(fora>600?'Bem-vinda de volta, '+jogadora+'! O tempo passou enquanto esteve fora'+(m?' e '+m+' plantas murcharam. Da próxima vez, toque em Dormir antes de sair.':'.'):'Olá de novo, '+jogadora+'!');}
+        aviso(fora>600?'Bem-vinda de volta, '+jogadora+'! O tempo passou enquanto esteve fora'+(m?' e '+m+' plantas murcharam. Da próxima vez, toque em Dormir antes de sair.':'.'):'Olá de novo, '+jogadora+'!');}
     }else novidades=true;
-    if(novidades){chamar=4;mochila('ajuda');}
+    if(novidades)mochila('ajuda');
   }else boasVindas();
   P.x=P.tx=240;P.y=P.ty=170;cam.x=clamp(P.x-W/2,0,WW-W);cam.y=clamp(P.y-H*.58,0,WH-H);
   mudou();
