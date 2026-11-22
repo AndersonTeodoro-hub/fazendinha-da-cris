@@ -160,6 +160,7 @@ function chao(){
     for(let k=0;k<5;k++){const a=k/5*TAU+i;el(g,x+Math.cos(a)*t,y+Math.sin(a)*t,t*.72,t*.72,c,0,0);}el(g,x,y,t*.5,t*.5,c==='#f6c945'?'#e07a1f':'#f6c945',0,0);}
   pronto(g);
   g.beginPath();g.roundRect(36,228,140,88,7);g.fillStyle='#b9945f';g.fill();g.lineWidth=1.6;g.strokeStyle='#8a5a34';g.stroke();pronto(g);
+  if(F3.ok){F3.chao(G);return;}
   arvore(g,232,TOP-12,r);arvore(g,300,TOP-15,r);arvore(g,462,TOP-13,r);
   fardo(g,70,TOP-12);fardo(g,84,TOP-12);fardo(g,77,TOP-21);
   for(let x=112;x<212;x+=11)girassol(g,x,TOP-8,15+(x*7%5));
@@ -361,17 +362,17 @@ function alvoAndar(x,y){P.meta=null;if(cena==='casa')rotaCasa(P,x,y);else{P.rota
 function toque(x,y){
   if(!jogadora||dormindo)return;
   if(cena==='casa')return toqueCasa(x,y);
-  for(let i=itens.length-1;i>=0;i--)if(Math.hypot(itens[i].x-x,itens[i].y-4-y)<11){apanhar(i);return;}
-  if(x>389&&x<411&&y>TOP-28&&y<TOP+5){P.tx=400;P.ty=TOP+7;P.meta='casa';return;}
+  for(let i=itens.length-1;i>=0;i--)if(bate(itens[i],22,14,x,y)){apanhar(i);return;}
+  if(bate({x:400,y:TOP+1},22,28,x,y)){P.tx=400;P.ty=TOP+7;P.meta='casa';return;}
   const gx=clamp(x,8,WW-8),gy=clamp(y,TOP+6,WH-5);
   if(ferramenta==='bola'){atirar(gx,gy);return;}
-  let alvo=null;animais.forEach(a=>{const s=SP[a.t];if(x>a.x-s.w/2-3&&x<a.x+s.w/2+3&&y>a.y-s.h-3&&y<a.y+4&&(!alvo||a.y>alvo.y))alvo=a;});
+  let alvo=null;animais.forEach(a=>{const s=SP[a.t];if(bate(a,s.w+6,s.h+3,x,y)&&(!alvo||a.y>alvo.y))alvo=a;});
   if(alvo&&(ferramenta==='amor'||ferramenta==='comida'||ferramenta==='agua')){sel=alvo;P.tx=clamp(alvo.x+(alvo.x>P.x?-1:1)*(SP[alvo.t].w/2+9),8,WW-8);P.ty=alvo.y+1;
     ferramenta==='amor'?carinho(alvo,P):dar(alvo,ferramenta,P);return;}
   sel=null;
-  const fm=GENTE.find(f=>f!==P&&!f.dentro&&Math.abs(x-f.x)<8*f.e&&y>f.y-28*f.e&&y<f.y+3);
+  const fm=GENTE.find(f=>f!==P&&!f.dentro&&bate(f,16*f.e,28*f.e,x,y));
   if(fm&&ferramenta==='amor'){fm.dir=P.x>fm.x?1:-1;mimo(fm.x,fm.y-30*fm.e);tocar('carinho');familiaM();return;}
-  const av=arvores.find(a=>Math.abs(x-a.x)<(a.hp>0?13:6)&&y>a.y-(a.hp>0?46:8)&&y<a.y+3);
+  const av=arvores.find(a=>bate(a,a.hp>0?26:12,a.hp>0?40:8,x,y));
   if(av){if(ferramenta==='machado'){P.tx=av.x+(P.x<av.x?-9:9);P.ty=av.y+2;if(av.hp<=0)aviso('Esta árvore está crescendo de novo. Falta '+tempo(av.t)+'.');else cortar(av,P);}
     else if(ferramenta==='amor')aviso(av.hp>0?'Use o Machado para cortar a árvore e ganhar madeira.':'Esta árvore volta a crescer em '+tempo(av.t)+'.');else{P.tx=gx;P.ty=gy;}return;}
   const c=noCanteiro(x,y);
@@ -414,7 +415,8 @@ function controlar(i){
 }
 
 /* ---------- entrada ---------- */
-const mundo=(sx,sy)=>{const r=cv.getBoundingClientRect();return[(sx-r.left)/r.width*W+cam.x,(sy-r.top)/r.height*H+cam.y];};
+let bate=(e,w,h,x,y)=>Math.abs(x-e.x)<w/2&&y>e.y-h&&y<e.y+4;
+let mundo=(sx,sy)=>{const r=cv.getBoundingClientRect();return[(sx-r.left)/r.width*W+cam.x,(sy-r.top)/r.height*H+cam.y];};
 cv.addEventListener('pointerdown',e=>{baixo=true;segue=false;pintados.clear();pt={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:T};try{cv.setPointerCapture(e.pointerId);}catch(_){}
   audio();const[x,y]=mundo(e.clientX,e.clientY);toque(x,y);e.preventDefault();});
 cv.addEventListener('pointermove',e=>{if(!baixo)return;pt.x=e.clientX;pt.y=e.clientY;if(Math.hypot(pt.x-pt.sx,pt.y-pt.sy)>8)segue=true;});
@@ -493,11 +495,16 @@ function desCasa(){
   if(decor==='tirar')escrever('Toque num móvel para guardar',cam.x+W/2,cam.y+H-6,'#f6c945',6);
 }
 function desenhar(){
+  if(cena!=='casa'&&F3.ok){F3.quadro();return hud();}
+  if(F3.c3)F3.c3.style.visibility='hidden';
   cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#2a1f24';cx.fillRect(0,0,cv.width,cv.height);
   cx.setTransform(S,0,0,S,-Math.round(cam.x*S),-Math.round(cam.y*S));pronto(cx);
   cena==='casa'?desCasa():desFazenda();
   coracoes.forEach(c=>{if(c.t>0){cx.globalAlpha=1-c.t*c.t;objeto('amor',c.x+Math.sin(c.t*6)*1.5,c.y-c.t*18,.5+Math.min(1,c.t*5)*.4);cx.globalAlpha=1;}});
   textos.forEach(t=>{cx.globalAlpha=Math.min(1,(1.5-t.t)*3);escrever(t.s,t.x,t.y-t.t*10);cx.globalAlpha=1;});
+  hud();
+}
+function hud(){
   if(sel){$('fNome').textContent=sel.n;$('fTipo').textContent=SP[sel.t].nome;$('bChamar').textContent='Chamar '+sel.n;
     [['bComida','comida'],['bAgua','agua'],['bAmor','amor']].forEach(([id,k])=>{const e=$(id);e.style.width=sel[k]+'%';e.className=sel[k]<30?'baixo':'';});}
   $('ficha').hidden=!sel||cena!=='fazenda';
@@ -631,7 +638,7 @@ setInterval(gravar,10000);
 let antes=0;
 function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt);desenhar();requestAnimationFrame(quadro);}
 (function(){
-  cinto();ajustar();
+  F3.liga();cinto();ajustar();
   const s=ler();let novidades=false;
   if(s&&s.jogadora&&Array.isArray(s.a)&&s.a.length){
     jogadora=s.jogadora;moedas=s.moedas|0;som=s.som!==false;$('som').textContent='Som: '+(som?'sim':'não');

@@ -76,6 +76,10 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
 #caixa li.pessoa label{display:block;font-size:13px;margin-top:6px}
 .abas{flex-wrap:wrap}
 @media(max-width:520px){#hora{margin-right:0}#quem{margin-right:auto}header{gap:5px;padding:6px 6px}header button,.chapa{padding:4px 8px;font-size:14px}}
+#c{position:relative;z-index:1}
+#ficha,#aviso,#sono{z-index:2}
+#fundo{z-index:10}
+#c3{position:absolute;display:block}
 </style>
 </head>
 <body>
@@ -104,10 +108,12 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
 </div>
 <div id="fundo" hidden><div id="caixa"></div></div>
 
-<script src="arte.js?v=4"></script>
-<script src="arte2.js?v=4"></script>
-<script src="arte3.js?v=4"></script>
-<script src="arte4.js?v=4"></script>
-<script src="jogo.js?v=4"></script>
+<script src="three.min.js"></script>
+<script src="arte.js?v=5"></script>
+<script src="arte2.js?v=5"></script>
+<script src="arte3.js?v=5"></script>
+<script src="arte4.js?v=5"></script>
+<script src="tres.js?v=5"></script>
+<script src="jogo.js?v=5"></script>
 </body>
 </html>
