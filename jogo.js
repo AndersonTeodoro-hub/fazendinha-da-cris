@@ -62,7 +62,7 @@ function bip(f,d=.08,tipo='square',f2){
   if(!som)return;
   try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;
     o.type=tipo;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
-    g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start();o.stop(t+d);}catch(e){}
+    g.gain.setValueAtTime(tipo==='sine'||tipo==='triangle'?.5:.28,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start();o.stop(t+d);}catch(e){}
 }
 const voz=a=>{const v=SP[a.t].voz;bip(v[0],.18,v[2],v[1]);};
 
