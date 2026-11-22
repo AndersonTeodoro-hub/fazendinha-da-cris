@@ -74,9 +74,9 @@ function ler(){try{return JSON.parse(localStorage.getItem('fazendinhaHD'));}catc
 
 /* ---------- chão ---------- */
 function ajustar(){
-  const p=$('palco'),aw=p.clientWidth,ah=p.clientHeight,a=clamp(aw/ah,.6,2.1);
+  const p=$('palco'),aw=p.clientWidth,ah=p.clientHeight,a=clamp(aw/ah,.6,2.5);
   if(a>=1){H=190;W=Math.round(190*a);}else{W=200;H=Math.round(200/a);}
-  const css=Math.min(aw/W,ah/H);S=Math.min(css*(window.devicePixelRatio||1),3840/W);
+  const css=Math.min(aw/W,ah/H);S=Math.min(css*Math.max(window.devicePixelRatio||1,2),3840/W);
   cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.width=W*css+'px';cv.style.height=H*css+'px';
   const gs=Math.min(S,Math.sqrt(16e6/(WW*WH)));if(Math.abs(gs-GS)>.01){GS=gs;chao();}
 }
@@ -364,7 +364,7 @@ function desCasa(){
 }
 function desenhar(){
   cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#2a1f24';cx.fillRect(0,0,cv.width,cv.height);
-  cx.setTransform(S,0,0,S,-cam.x*S,-cam.y*S);pronto(cx);
+  cx.setTransform(S,0,0,S,-Math.round(cam.x*S),-Math.round(cam.y*S));pronto(cx);
   cena==='casa'?desCasa():desFazenda();
   coracoes.forEach(c=>{if(c.t>0){cx.globalAlpha=1-c.t*c.t;objeto('amor',c.x+Math.sin(c.t*6)*1.5,c.y-c.t*18,.5+Math.min(1,c.t*5)*.4);cx.globalAlpha=1;}});
   textos.forEach(t=>{cx.globalAlpha=Math.min(1,(1.5-t.t)*3);escrever(t.s,t.x,t.y-t.t*10);cx.globalAlpha=1;});
