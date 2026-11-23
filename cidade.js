@@ -190,9 +190,9 @@ function cidadeDesenho(L,H){
 /* o portão e a visita, vistos de dentro da fazenda */
 function cidadeFazenda(L,H){
   const{up,fl,somb,txt}=H;
-  fl(PORTAO.x-22,PORTAO.y,()=>{cx.beginPath();cx.roundRect(-34,-9,70,18,7);cx.fillStyle='#d9b98a';cx.fill();});
+  fl(PORTAO.x-22,PORTAO.y,()=>{cx.beginPath();cx.roundRect(-44,-13,80,26,9);cx.fillStyle='#d9b98a';cx.fill();});
   L.push([PORTAO.y-15,()=>up(PORTAO.x,PORTAO.y-15,()=>{cx.beginPath();cx.roundRect(-1.8,-30,3.6,30,1.4);cx.fillStyle='#a8744a';cx.fill();cx.stroke();})]);
-  L.push([PORTAO.y+15,()=>up(PORTAO.x,PORTAO.y+15,()=>{cx.beginPath();cx.roundRect(-1.8,-30,3.6,30,1.4);cx.fillStyle='#a8744a';cx.fill();cx.stroke();cx.beginPath();cx.roundRect(-16,-40,32,9,1.6);cx.fillStyle='#f6c945';cx.fill();cx.stroke();placa('Rua',-33.4,6);})]);
+  L.push([PORTAO.y+15,()=>up(PORTAO.x,PORTAO.y+15,()=>{cx.beginPath();cx.roundRect(-1.8,-30,3.6,30,1.4);cx.fillStyle='#a8744a';cx.fill();cx.stroke();cx.beginPath();cx.roundRect(-24,-46,48,15,2);cx.fillStyle='#f6c945';cx.fill();cx.stroke();placa('Cidade →',-35.6,8.5,44);})]);
   if(hospede&&hospede.st===1){const v=VZS[hospede.i],x=PORTAO.x-18,y=PORTAO.y+5;L.push([y,()=>{somb(x,y,13);up(x,y,()=>pessoa(cx,{dir:-1,ph:0,mov:false},T,v.o),1.2);
     up(x,y,()=>{cx.translate(0,-46-Math.abs(Math.sin(T*3))*2);cx.beginPath();cx.roundRect(-16,-6,32,10,4);cx.fillStyle='#fff';cx.fill();cx.stroke();placa('Tem visita!',1.2,4.6,29);});}]);}
 }

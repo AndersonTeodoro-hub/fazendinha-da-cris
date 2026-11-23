@@ -52,8 +52,11 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       [[-360,-620,340],[160,-760,420],[620,-700,380],[1100,-600,360],[-620,-200,300],[1380,-160,320],[-640,420,300],[1420,460,320]].forEach(([x,z,q])=>{const m=malha(new THREE.SphereGeometry(q,24,12),lam('#7fcf6a'),x,-q*.74,z);m.castShadow=false;});
       const gt=new THREE.CylinderGeometry(1.8,2.6,12,6),gc=new THREE.IcosahedronGeometry(11,0),gc2=new THREE.IcosahedronGeometry(7.5,0),mtk=lam('#8a5a34'),mc=[lam('#3f8f47'),lam('#4fa357'),lam('#2f7a4a')];
       for(let i=0;i<150;i++){let x,z;const k=r();if(k<.36){x=-40-r()*300;z=-140+r()*(WH+160);}else if(k<.72){x=WW+40+r()*300;z=-140+r()*(WH+160);}else{x=-260+r()*(WW+520);z=-90-r()*260;}
-        if(Math.hypot(x-160,z+50)<40||(x>-40&&x<90&&z>-10))continue;const e=.8+r()*.9,m=mc[i%3];
+        if(Math.hypot(x-160,z+50)<40||(x>-40&&x<90&&z>-10)||(x>WW&&Math.abs(z-PORTAO.y)<46))continue;const e=.8+r()*.9,m=mc[i%3];
         malha(gt,mtk,x,6*e,z).scale.setScalar(e);malha(gc,m,x,19*e,z).scale.set(e,e*1.15,e);malha(gc2,m,x+2*e,30*e,z-1).scale.setScalar(e);}
+      /* estrada de terra que sai do portão para a cidade, com as primeiras casas ao longe */
+      const est=new THREE.Mesh(new THREE.PlaneGeometry(900,40),new THREE.MeshBasicMaterial({color:'#cfa877'}));est.rotation.x=-Math.PI/2;est.position.set(WW+438,.06,PORTAO.y);sc.add(est);
+      [[150,'#f6d9a8','#2f7a74'],[250,'#e9eef5','#3f68a8'],[350,'#fbe3ec','#a8486e']].forEach(([d,p,t])=>{malha(new THREE.BoxGeometry(46,24,34),lam(p),WW+d,12,PORTAO.y-52);const c=malha(new THREE.ConeGeometry(36,18,4),lam(t),WW+d,33,PORTAO.y-52);c.rotation.y=Math.PI/4;});
       /* casa por dentro: chão e parede do fundo em 3D */
       scH=new THREE.Scene();scH.background=new THREE.Color('#2a1f24');
       const piso=new THREE.Mesh(new THREE.PlaneGeometry(CW,182),new THREE.MeshBasicMaterial({map:tex(CW,182,8,g=>{g.fillStyle='#2a1f24';g.fillRect(0,0,CW,40);
