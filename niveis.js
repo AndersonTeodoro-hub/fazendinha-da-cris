@@ -37,7 +37,7 @@ function geraPedido(){
 }
 function diaNovo(){
   const d=Math.floor(relogio/DIA);if(d===diaPed||!jogadora)return;
-  const primeiro=diaPed<0;diaPed=d;pedidos=[geraPedido(),geraPedido(),geraPedido()];const extra=vidaDia(d);rotNivel();gravar();
+  const primeiro=diaPed<0;diaPed=d;pedidos=[geraPedido(),geraPedido(),geraPedido()];const extra=vidaDia(d);rotNivel();gravar();if(!primeiro)tocar('galo');
   if(!primeiro||extra)aviso((primeiro?'':'Bom dia! Chegaram três pedidos novos dos vizinhos.')+extra);
 }
 function pedidosM(){

@@ -65,7 +65,7 @@ function cidadePasso(dt){
   if(cena==='fazenda'&&P.mov&&P.x>WW-11&&Math.abs(P.y-PORTAO.y)<10)return irCidade();
   if(churras&&(churras.t-=dt)<=0)churras=null;
   if(cena!=='cidade')return;
-  if(P.carro){picape.x=P.x;picape.y=P.y;picape.dir=P.dir;if(P.mov&&(motor-=dt)<=0){motor=.2;osc(60+R()*10,.22,{tipo:'sawtooth',lp:320,v:.13});}}
+  if(P.carro){picape.x=P.x;picape.y=P.y;picape.dir=P.dir;if(P.mov&&!AMOSTRA.a_motor&&(motor-=dt)<=0){motor=.2;osc(60+R()*10,.22,{tipo:'sawtooth',lp:320,v:.13});}}
   else if(P.mov&&Math.abs(P.x-MEU)<9&&P.y<CERCA+5)return irFazenda();
   VZS.forEach((v,i)=>{v.mov=false;
     if(churras){if(ir(v,PRACA.x-44+i*30,PRACA.y+16+(i%2)*9,40,dt,1)){v.dir=PRACA.x>v.x?1:-1;if(R()<dt*.12)dizer(v.x,v.y-40,['Que churrasco bom!','Passa a farofa!','Viva a vizinhança!','Tá no ponto!'][R()*4|0]);}}

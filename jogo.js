@@ -83,7 +83,21 @@ function audio(){
   if(!som)return null;
   try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
     if(!ruido){ruido=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=ruido.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
-    return AC;}catch(e){return null;}
+    carregaSons();return AC;}catch(e){return null;}
+}
+/* gravações reais (domínio público); enquanto não carregam, ou se falharem, toca o som sintetizado */
+const AMOSTRA={},SONS=['latido','latido2','miau','mugido','cacarejo','oinc','bale','galo','regar','beber','pingo','porta','sapo','a_fogo','a_passaros','a_grilos','a_chuva','a_motor'],ALIAS={agua:'pingo'},AMB={};let sapoT=0;
+function carregaSons(){if(carregaSons.ok)return;carregaSons.ok=true;SONS.forEach(k=>fetch('sons/'+k+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>AC.decodeAudioData(b,ok,no))).then(b=>{AMOSTRA[k]=b;}).catch(()=>{}));}
+function amostra(k,v){k=ALIAS[k]||k;if(k==='latido'&&Math.random()<.4)k='latido2';const b=AMOSTRA[k],a=b&&audio();if(!a)return false;
+  const s=a.createBufferSource(),g=a.createGain();s.buffer=b;s.playbackRate.value=.94+Math.random()*.12;g.gain.value=v;s.connect(g).connect(a.destination);s.start();return true;}
+function ambiente(){
+  if(!AC)return;const t=AC.currentTime,fora=cena!=='casa',dia=escV<.5,cala=!som||dormindo||!jogadora||document.hidden;
+  const q={a_passaros:fora&&dia&&!chuva?.1:0,a_grilos:fora&&!dia?.09:0,a_chuva:chuva?(fora?.22:.07):0,a_fogo:!fora&&fogo>0?.22:0,a_motor:cena==='cidade'&&P.carro&&P.mov?.3:0};
+  for(const k in q){const m=AMB[k]||(AMB[k]={prox:0,vivos:[]}),b=AMOSTRA[k],v=cala?0:q[k];
+    if(v>0&&b&&t>=m.prox){const s=AC.createBufferSource(),g=AC.createGain(),d=b.duration;s.buffer=b;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.45);g.gain.setValueAtTime(v,t+d-.5);g.gain.linearRampToValueAtTime(.0001,t+d-.03);
+      s.connect(g).connect(AC.destination);s.start(t);m.prox=t+d-.5;m.vivos.push(g);s.onended=()=>{const i=m.vivos.indexOf(g);if(i>=0)m.vivos.splice(i,1);};}
+    else if(v<=0&&m.vivos.length){m.vivos.forEach(g=>{g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(.0001,t,.1);});m.vivos=[];m.prox=0;}}
+  if(!cala&&noite&&cena==='fazenda'&&t>sapoT){sapoT=t+7+Math.random()*14;tocar('sapo',LAGO.x,LAGO.y);}
 }
 function osc(f,d,o){
   const a=audio();if(!a)return;o=o||{};const t=a.currentTime+(o.t||0),os=a.createOscillator(),g=a.createGain(),v=o.v??.4;
@@ -105,7 +119,7 @@ const SOM={
  cacarejo(v){for(let i=0;i<4;i++)osc(720+i*90,.07,{tipo:'square',f2:1100,lp:2600,v:v*.45,t:i*.1});osc(950,.2,{tipo:'square',f2:600,lp:2400,v:v*.45,t:.42});},
  bale(v){osc(370,.75,{tipo:'sawtooth',f2:335,lp:1500,trem:11,v});},
  oinc(v){for(const t of[0,.2]){osc(175,.15,{tipo:'sawtooth',f2:110,lp:700,v,t});chiado(.13,{bp:500,v:v*.7,t});}},
- comer(v){for(let i=0;i<3;i++)chiado(.07,{bp:1500,q:2,v:v*.8,t:i*.17});},
+ comer(v){for(let i=0;i<4;i++){const t=i*.17+Math.random()*.03;chiado(.045,{bp:2600+Math.random()*1800,q:3,v:v*.9,t});chiado(.09,{bp:650,q:1.2,v:v*.55,t:t+.02});}},
  beber(v){for(let i=0;i<3;i++)osc(520-i*40,.1,{f2:260,v:v*.6,t:i*.18});},
  enxada(v){osc(130,.15,{f2:50,v});chiado(.13,{bp:700,v:v*.7});},
  regar(v){chiado(.6,{bp:3200,q:.8,v:v*.5});for(let i=0;i<4;i++)osc(900+i*130,.06,{f2:500,v:v*.2,t:i*.12});},
@@ -121,7 +135,7 @@ const SOM={
  clique(v){osc(600,.04,{tipo:'triangle',v:v*.5});},
  pop(v){osc(520,.05,{v:v*.5});}
 };
-function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena!=='fazenda')return;v*=clamp(1.15-Math.hypot(x-P.x,y-P.y)/240,0,1);if(v<.03)return;}SOM[n](v);}
+function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena!=='fazenda')return;v*=clamp(1.15-Math.hypot(x-P.x,y-P.y)/240,0,1);if(v<.03)return;}if(!amostra(n,v*1.5)&&SOM[n])SOM[n](v);}
 const voz=a=>tocar(SP[a.t].sfx,a.x,a.y);
 
 /* ---------- gravar ---------- */
@@ -598,7 +612,7 @@ function mochila(aba){
     '<li><b>Refeições:</b> a vovó chama para o almoço e para a janta. Quem estiver em tarefas vai sozinho; quem está nas suas mãos tem de ir até a sala. A vovó usa três coisas da mochila (ovos, leite, colheitas): com a despensa cheia, a energia volta toda.</li>'+
     '<li><b>Horta:</b> Enxada prepara a terra, Semente planta (toque de novo em Semente para escolher outra), Regador rega. Sem água a planta para de crescer e murcha. Depois de madura, colha com a Mão antes de a barra acabar.</li>'+
     '<li><b>Bichos:</b> uma ração e água por dia chegam. Capim e trigo viram ração. Bichos felizes deixam ovos, leite e lã.</li><li><b>Casas dos bichos:</b> à noite a vaca vai para o curral, as galinhas para o galinheiro e os cachorros para as casinhas. Os ovos ficam no galinheiro: toque nele para recolher.</li><li><b>Lago:</b> toque no lago com a Mão para pescar. Peixe vende-se ou vai para a panela. Com a Ração selecionada, o toque alimenta os peixes e nascem mais.</li><li><b>Louro:</b> o papagaio do viveiro vê tudo. Toque nele para saber as novidades; ele também avisa sozinho quando há algo urgente.</li><li><b>Estações e chuva:</b> a cada três dias muda a estação. Na primavera tudo cresce mais depressa, no verão a terra seca mais depressa, no inverno as plantas crescem devagar. Quando chove, a horta fica regada sozinha.</li><li><b>Mascate:</b> dia sim, dia não, Seu Chico chega de manhã com a carroça e para perto da casa. Toque nele para trocar coisas; ele traz sementes que a loja ainda não vende.</li><li><b>Mais canteiros:</b> compre na Loja, aba Horta, a partir do nível 2.</li><li><b>Machado:</b> corte árvores para ter madeira. Elas voltam a crescer.</li>'+
-    '<li><b>Pedidos e nível:</b> toque em Nível, lá em cima. Todas as manhãs os vizinhos fazem três pedidos que pagam mais do que a loja. Cada ação dá pontos; ao subir de nível a loja ganha sementes, bichos e móveis novos.</li><li><b>Loja:</b> compre bichos, sementes e móveis, e venda na aba Vender o que a fazenda produz. Na aba Melhorias, evolua o regador, as ferramentas, o galinheiro e as botas.</li><li><b>Casa:</b> cozinha, sala, quarto do casal e quarto da filha. Toque no fogão a lenha para cozinhar, na TV para ligar, e use Decorar para pôr móveis.</li>'+
+    '<li><b>Pedidos e nível:</b> toque em Nível, lá em cima. Todas as manhãs os vizinhos fazem três pedidos que pagam mais do que a loja. Cada ação dá pontos; ao subir de nível a loja ganha sementes, bichos e móveis novos.</li><li><b>Cidade:</b> o portão "Rua", do lado direito da fazenda, leva à rua das fazendas: visite os vizinhos, faça negócios, churrasco na praça e compras no mercado. A picape traz 6 caixas de uma vez.</li><li><b>Loja:</b> compre bichos, sementes e móveis, e venda na aba Vender o que a fazenda produz. Na aba Melhorias, evolua o regador, as ferramentas, o galinheiro e as botas.</li><li><b>Casa:</b> cozinha, sala, quarto do casal e quarto da filha. Toque no fogão a lenha para cozinhar, na TV para ligar, e use Decorar para pôr móveis.</li>'+
     '<li><b>Dormir:</b> de dia, pausa o jogo. À noite, todos dormem, acordam de manhã e com a energia cheia. O jogo guarda sozinho e fica parado enquanto estiver fechado: ao voltar, continua de onde parou.</li></ul>';
   abrir(h+'<button type="button" id="sairM">Fechar</button>');ligar(mochila);
   if($('todos'))$('todos').onclick=()=>{fechar();if(cena!=='fazenda')return aviso('Saia de casa para chamar os bichos.');chamar=5;animais.forEach(a=>{acordar(a);a.th=0;});osc(900,.3,{f2:1500,v:.4});};
@@ -650,7 +664,7 @@ setInterval(gravar,10000);
 
 /* ---------- arranque ---------- */
 let antes=0;
-function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt);desenhar();requestAnimationFrame(quadro);}
+function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt);ambiente();desenhar();requestAnimationFrame(quadro);}
 (function(){
   extrasInicio();F3.liga();cinto();ajustar();
   let novidades=false,px0=240,py0=170;const s=ler();
