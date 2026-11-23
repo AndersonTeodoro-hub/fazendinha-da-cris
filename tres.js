@@ -1,7 +1,7 @@
 /* ---------- cenário 3D (Three.js) com personagens 2D por cima ---------- */
 const F3={ok:false,c3:null,dedos:0,zoom:1};
 (function(){
-  let rd,sc,scH,cam3,pas,chaoMat,paredeMat,pk='',tx=240,tz=180,hx=180,hzz=80;
+  let rd,sc,scH,scC,cam3,pas,chaoMat,paredeMat,pk='',tx=240,tz=180,hx=180,hzz=80;
   const ZMIN=.55,ZMAX=4.2,v=new THREE.Vector3();
   const tex=(w,h,e,f)=>{const c=document.createElement('canvas');c.width=w*e;c.height=h*e;const g=c.getContext('2d');g.scale(e,e);pronto(g);f(g);const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t;};
   const lam=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
@@ -62,6 +62,7 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       piso.rotation.x=-Math.PI/2;piso.position.set(CW/2,0,91);scH.add(piso);
       paredeMat=new THREE.MeshBasicMaterial({color:'#fff'});const pw=new THREE.Mesh(new THREE.PlaneGeometry(CW,40),paredeMat);pw.position.set(CW/2,20,40);scH.add(pw);
       for(const x of[-2,CW+2]){const m=new THREE.Mesh(new THREE.BoxGeometry(4,40,142),new THREE.MeshBasicMaterial({color:x<0?'#d9ccb0':'#cfc2a6'}));m.position.set(x,20,111);scH.add(m);}
+      scC=new THREE.Scene();cidade3D(scC,{malha,lam,tex,relva});
       F3.c3=c3;F3.ok=true;
       mundo=(sx,sy)=>{const q=cv.getBoundingClientRect();v.set((sx-q.left)/q.width*2-1,-((sy-q.top)/q.height*2-1),.5).unproject(cam3).sub(cam3.position);const o=cam3.position;
         if(cena==='casa'){if(v.z<0){const t=(40-o.z)/v.z,h=o.y+v.y*t;if(h>=0&&h<=40)return[o.x+v.x*t,40-h];}const t=-o.y/v.y;return[o.x+v.x*t,hy(o.z+v.z*t)];}
@@ -85,10 +86,10 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
     const k=Math.min(1,dt*5),z=zoomF(),asp=cv.width/cv.height;cam3.aspect=asp;
     if(cena==='casa'){hx+=(clamp(P.x,110,CW-110)-hx)*k;hzz+=(clamp(hz(P.y),95,125)-hzz)*k;
       cam3.fov=Math.max(34,2*Math.atan(150/asp/2/200)*180/Math.PI);cam3.position.set(hx,205*z,hzz+180*z);cam3.lookAt(hx,0,hzz-10);}
-    else{const t=clamp((z-1.3)/(ZMAX-1.3),0,1),mx=70+(WW/2-70)*t,mz=TOP+50+(WH/2-TOP-50)*t;
-      tx+=(clamp(P.x,mx,WW-mx)-tx)*k;tz+=(clamp(P.y,mz,Math.max(mz,WH-40-(WH/2-40)*t))-tz)*k;
+    else{const C=cena==='cidade',w=C?CIW:WW,h=C?CIH:WH,tp=C?70:TOP,t=clamp((z-1.3)/(ZMAX-1.3),0,1),mx=70+(w/2-70)*t,mz=tp+50+(h/2-tp-50)*t;
+      tx+=(clamp(P.x,mx,w-mx)-tx)*k;tz+=(clamp(P.y,mz,Math.max(mz,h-40-(h/2-40)*t))-tz)*k;
       cam3.fov=Math.max(34,2*Math.atan(190/asp/2/311)*180/Math.PI);cam3.position.set(tx,230*z,tz+210*z);cam3.lookAt(tx,0,tz-14);
-      sc.fog.near=480*Math.max(1,z);sc.fog.far=1100*Math.max(1,z)+500;}
+      const f=(C?scC:sc).fog;f.near=480*Math.max(1,z);f.far=1100*Math.max(1,z)+500;}
     cam3.updateProjectionMatrix();cam3.updateMatrixWorld();
   }
   let ultimo=0;
@@ -99,9 +100,9 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
     if(cena==='casa'){const key=casa.parede+'|'+(escV>.5);if(key!==pk){pk=key;if(paredeMat.map)paredeMat.map.dispose();
         paredeMat.map=tex(CW,40,8,g=>{g.beginPath();g.rect(0,0,CW,40);g.clip();interior(g,escV>.5?1:0,PAREDES[casa.parede%PAREDES.length]);});paredeMat.needsUpdate=true;}
       rd.shadowMap.enabled=false;rd.render(scH,cam3);}
-    else{pas.rotation.z=-T*.6;const n=escV;sc.background.setRGB(.75-.68*n,.9-.8*n,1-.72*n);sc.fog.color.copy(sc.background);rd.shadowMap.enabled=true;rd.render(sc,cam3);}
+    else{pas.rotation.z=-T*.6;const n=escV,s=cena==='cidade'?scC:sc;s.background.setRGB(.75-.68*n,.9-.8*n,1-.72*n);s.fog.color.copy(s.background);rd.shadowMap.enabled=true;rd.render(s,cam3);}
     cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);
-    cena==='casa'?desenhoCasa():desenho();climaDesenho();
+    cena==='casa'?desenhoCasa():cena==='cidade'?desenhoCid():desenho();climaDesenho();
     const alto=(x,y)=>{const p=P3(x,y+24);p.sy-=24*p.k;return p;},cw=cv.width;
     coracoes.forEach(c=>{if(c.t>0){const p=alto(c.x+Math.sin(c.t*6)*1.5,c.y-c.t*18),e=p.k*(.5+Math.min(1,c.t*5)*.4);cx.setTransform(e,0,0,e,p.sx,p.sy);pronto(cx);cx.globalAlpha=1-c.t*c.t;ICO.amor(cx);cx.globalAlpha=1;}});
     textos.forEach(t=>{const p=alto(t.x,t.y-t.t*10),k=Math.max(p.k,cw/420);cx.setTransform(k,0,0,k,0,0);cx.font='600 6.5px Fredoka,"Trebuchet MS",sans-serif';const w=cx.measureText(t.s).width/2+3;
@@ -120,6 +121,9 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
     f([pj(x0,y0),pj(x0,y1),pj(x0,y1,h),pj(x0,y0,h)],tom(c,-.28));f([pj(x1,y0),pj(x1,y1),pj(x1,y1,h),pj(x1,y0,h)],tom(c,-.28));
     f([pj(x0,y1),pj(x1,y1),pj(x1,y1,h),pj(x0,y1,h)],tom(c,-.14));f([pj(x0,y0,h),pj(x1,y0,h),pj(x1,y1,h),pj(x0,y1,h)],c);
   }
+  F3.salta=()=>{tx=P.x;tz=P.y;};
+  function desenhoCid(){const L=[];cidadeDesenho(L,{up,fl,somb,txt,anel});L.sort((a,q)=>a[0]-q[0]).forEach(l=>l[1]());
+    if(escV>0){cx.setTransform(1,0,0,1,0,0);const k=escV*(1-escV)*4;cx.fillStyle='rgba(255,130,60,'+k*.14+')';cx.fillRect(0,0,cv.width,cv.height);cx.fillStyle='rgba(14,20,62,'+escV*.52+')';cx.fillRect(0,0,cv.width,cv.height);}}
   function desenho(){
     const cw=cv.width,chh=cv.height,L=[],b=TOP-3;
     canteiros.forEach(c=>fl(c.x,c.y,()=>canteiro(cx,Object.assign({},c,{x:0,y:0}))));
@@ -140,7 +144,7 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       somb(a.x,a.y,sp.w,1-pulo*.04);up(a.x,a.y,()=>{cx.translate(0,-pulo/ESC);sp.draw(cx,a,estado(a));},a.dir*ESC,ESC);}]));
     if(!dormindo)GENTE.forEach(f=>{if(f===P||!f.dentro)L.push([f.y,()=>{if(f===P)anel(f.x,f.y,8*f.e,'#fff','rgba(255,255,255,.2)');else somb(f.x,f.y,11*f.e);up(f.x,f.y,()=>pessoa(cx,f,T,opc(f)),f.e);}]);});
     if(bola&&!bola.leva)L.push([bola.y,()=>{somb(bola.x,bola.y,6);up(bola.x,bola.y,()=>{cx.translate(0,-2.5-bola.z);ICO.bola(cx);});}]);
-    extrasDesenho(L,{up,fl,somb,P3,txt});vidaDesenho(L,{up,fl,somb,P3,txt});
+    extrasDesenho(L,{up,fl,somb,P3,txt});vidaDesenho(L,{up,fl,somb,P3,txt});cidadeFazenda(L,{up,fl,somb,txt});
     L.sort((a,q)=>a[0]-q[0]).forEach(l=>l[1]());
     extrasTopo({up,P3,txt});
     if(bola&&bola.leva){const a=bola.leva,sp=SP[a.t];up(a.x+a.dir*(sp.w/2+2.5),a.y,()=>{cx.translate(0,-sp.h*.5);ICO.bola(cx);});}

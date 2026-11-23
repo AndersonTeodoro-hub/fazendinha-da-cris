@@ -121,11 +121,11 @@ const SOM={
  clique(v){osc(600,.04,{tipo:'triangle',v:v*.5});},
  pop(v){osc(520,.05,{v:v*.5});}
 };
-function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena==='casa')return;v*=clamp(1.15-Math.hypot(x-P.x,y-P.y)/240,0,1);if(v<.03)return;}SOM[n](v);}
+function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena!=='fazenda')return;v*=clamp(1.15-Math.hypot(x-P.x,y-P.y)/240,0,1);if(v<.03)return;}SOM[n](v);}
 const voz=a=>tocar(SP[a.t].sfx,a.x,a.y);
 
 /* ---------- gravar ---------- */
-function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,melh,px:Math.round(P.x),py:Math.round(P.y),it:itens.map(i=>[i.k,Math.round(i.x),Math.round(i.y)]),visita,ninho,peixes,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
+function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,cid:cidadeSalva(),melh,px:cena==='cidade'?WW-28:Math.round(P.x),py:cena==='cidade'?PORTAO.y:Math.round(P.y),it:itens.map(i=>[i.k,Math.round(i.x),Math.round(i.y)]),visita,ninho,peixes,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
   ativo:GENTE.indexOf(P),gente:GENTE.map(p=>[Math.round(p.energia),p.tarefa]),
   h:canteiros.map(c=>({lavrado:c.lavrado,k:c.k,g:c.g,agua:c.agua,seco:c.seco,pronto:c.pronto,morta:c.morta})),arv:arvores.map(a=>[a.hp,a.t]),
   a:animais.map(a=>({t:a.t,n:a.n,c:a.c,x:Math.round(a.x),y:Math.round(a.y),comida:a.comida,agua:a.agua,amor:a.amor}))}));}catch(e){}}
@@ -312,18 +312,18 @@ function passo(dt){
   relogio+=dt;noite=fase()>.6;chamar=Math.max(0,chamar-dt);
   if(baixo&&!travado&&(segue||T-pt.t>.25)){segue=true;const[x,y]=mundo(pt.x,pt.y);alvoAndar(x,y);if(cena==='fazenda')pintar(x,y);}
   P.mov=false;
-  if(P.rota.length){if(ir(P,P.rota[0][0],P.rota[0][1],84*(1+.12*melh.botas),dt,1.5))P.rota.shift();}
-  else if(ir(P,P.tx,P.ty,84*(1+.12*melh.botas),dt,1)&&P.meta){const m=P.meta;P.meta=null;m==='casa'?entrar():m==='pescar'?pescar():sair();}
+  if(P.rota.length){if(ir(P,P.rota[0][0],P.rota[0][1],velP(),dt,1.5))P.rota.shift();}
+  else if(ir(P,P.tx,P.ty,velP(),dt,1)&&P.meta){const m=P.meta;P.meta=null;if(!cidadeChega(m))(m==='casa'?entrar():m==='pescar'?pescar():sair());}
   if(cena==='fazenda'&&P.mov&&Math.abs(P.x-400)<7&&P.y<TOP+9){P.meta=null;entrar();}
   Q=cena==='fazenda'?P:PORTA;
-  crescer(dt);refeicoes();diaNovo();extrasPasso(dt);vidaPasso(dt);
+  crescer(dt);refeicoes();diaNovo();extrasPasso(dt);vidaPasso(dt);cidadePasso(dt);
   if(bola){
     if(!bola.chao){bola.t+=dt/.6;const k=Math.min(1,bola.t);bola.x=bola.sx+(bola.tx-bola.sx)*k;bola.y=bola.sy+(bola.ty-bola.sy)*k;bola.z=Math.sin(Math.PI*k)*26;if(k>=1)bola.chao=true;}
     else if(!bola.de&&(bola.vida-=dt)<=0)bola=null;
   }
   animais.forEach(a=>atualizar(a,dt));GENTE.forEach(f=>{if(f!==P)familiaPasso(f,dt);});arvores.forEach(a=>a.treme=Math.max(0,a.treme-dt*3));
   for(let i=itens.length-1;i>=0;i--){itens[i].t+=dt;if(cena==='fazenda'&&Math.hypot(itens[i].x-P.x,itens[i].y-P.y)<10)apanhar(i);}
-  const k=Math.min(1,dt*5),mw=cena==='casa'?CW:WW,mh=cena==='casa'?CH:WH;
+  const k=Math.min(1,dt*5),mw=cena==='casa'?CW:cena==='cidade'?CIW:WW,mh=cena==='casa'?CH:cena==='cidade'?CIH:WH;
   cam.x+=((mw<=W?(mw-W)/2:clamp(P.x-W/2,0,mw-W))-cam.x)*k;cam.y+=((mh<=H?(mh-H)/2:clamp(P.y-H*.58,0,mh-H))-cam.y)*k;
 }
 
@@ -362,13 +362,14 @@ function acaoCanteiro(c,quieto){
 }
 const noCanteiro=(x,y)=>canteiros.find(c=>Math.abs(x-c.x)<14&&Math.abs(y-c.y)<10);
 function pintar(x,y){const c=noCanteiro(x,y);if(c&&!pintados.has(c)){pintados.add(c);acaoCanteiro(c,true);}}
-function alvoAndar(x,y){P.meta=null;if(cena==='casa')rotaCasa(P,x,y);else{P.rota=[];P.tx=clamp(x,8,WW-8);P.ty=clamp(y,TOP+6,WH-5);}}
+function alvoAndar(x,y){P.meta=null;if(cena==='casa')rotaCasa(P,x,y);else if(cena==='cidade'){P.rota=[];P.tx=clamp(x,10,CIW-10);P.ty=P.carro?clamp(y,RUA-14,RUA+14):clamp(y,CERCA+2,CIH-8);}else{P.rota=[];P.tx=clamp(x,8,WW-8);P.ty=clamp(y,TOP+6,WH-5);}}
 function toque(x,y){
   if(!jogadora||dormindo)return;
   if(cena==='casa')return toqueCasa(x,y);
+  if(cena==='cidade')return cidadeToque(x,y);
   for(let i=itens.length-1;i>=0;i--)if(bate(itens[i],22,14,x,y)){apanhar(i);return;}
   if(bate({x:400,y:TOP+1},22,28,x,y)){P.tx=400;P.ty=TOP+7;P.meta='casa';return;}
-  if(extrasToque(x,y)||vidaToque(x,y))return;
+  if(extrasToque(x,y)||vidaToque(x,y)||cidadeToqueFaz(x,y))return;
   const gx=clamp(x,8,WW-8),gy=clamp(y,TOP+6,WH-5);
   if(ferramenta==='bola'){atirar(gx,gy);return;}
   let alvo=null;animais.forEach(a=>{const s=SP[a.t];if(bate(a,s.w+6,s.h+3,x,y)&&(!alvo||a.y>alvo.y))alvo=a;});
@@ -411,12 +412,12 @@ function despertar(){dormindo=false;animais.forEach(a=>{a.st='idle';a.wait=1;a.a
   gravar();osc(400,.4,{f2:800,v:.35});aviso('Bom dia, '+jogadora+'!');}
 function controlar(i){
   const n=GENTE[i];if(n===P)return;const era=P,antes=cena;
-  era.meta=null;era.rota=[];era.tx=era.x;era.ty=era.y;era.pausa=0;if(antes==='casa')era.dentro=true;
+  era.meta=null;era.rota=[];era.tx=era.x;era.ty=era.y;era.pausa=0;if(antes==='casa')era.dentro=true;if(antes==='cidade'){era.carro=false;era.x=era.tx=WW-40;era.y=era.ty=PORTAO.y;}
   P=n;P.rota=[];P.meta=null;P.pausa=0;
   if(n.dentro){n.dentro=false;cena='casa';P.x=222;P.y=102;}else cena='fazenda';
   P.tx=P.x;P.ty=P.y;sel=null;decor=null;if(cena!==antes)cinto();
   const mw=cena==='casa'?CW:WW,mh=cena==='casa'?CH:WH;cam.x=clamp(P.x-W/2,0,Math.max(0,mw-W));cam.y=clamp(P.y-H*.58,0,Math.max(0,mh-H));
-  mudou();tocar('clique');aviso('Agora quem está nas suas mãos é '+nomeDe(P)+'.');
+  if(F3.salta)F3.salta();mudou();tocar('clique');aviso('Agora quem está nas suas mãos é '+nomeDe(P)+'.');
 }
 
 /* ---------- entrada ---------- */
@@ -503,7 +504,7 @@ function desenhar(){
   if(F3.ok){F3.quadro();return hud();}
   cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#2a1f24';cx.fillRect(0,0,cv.width,cv.height);
   cx.setTransform(S,0,0,S,-Math.round(cam.x*S),-Math.round(cam.y*S));pronto(cx);
-  cena==='casa'?desCasa():desFazenda();
+  cena==='casa'?desCasa():cena==='cidade'?cidade2D():desFazenda();
   coracoes.forEach(c=>{if(c.t>0){cx.globalAlpha=1-c.t*c.t;objeto('amor',c.x+Math.sin(c.t*6)*1.5,c.y-c.t*18,.5+Math.min(1,c.t*5)*.4);cx.globalAlpha=1;}});
   textos.forEach(t=>{cx.globalAlpha=Math.min(1,(1.5-t.t)*3);escrever(t.s,t.x,t.y-t.t*10);cx.globalAlpha=1;});
   hud();
@@ -519,6 +520,7 @@ function hud(){
 /* ---------- interface ---------- */
 const BARRA={
  fazenda:[['amor','Mão','mao'],['enxada','Enxada','enxada'],['semente','Semente','saquinho'],['agua','Regador','regador'],['machado','Machado','machado'],['comida','Ração','racao'],['bola','Bola','bola'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']],
+ cidade:[['voltar','Fazenda','porta'],['picape','Picape','picape'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']],
  casa:[['sair','Sair','porta'],['decorar','Decorar','m_sofa'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']]
 };
 const FERR=['amor','enxada','semente','agua','machado','comida','bola'];
@@ -526,6 +528,7 @@ function cinto(){
   const n=$('cinto');n.innerHTML='';
   BARRA[cena].forEach(([k,rot,ico])=>{const b=document.createElement('button');b.type='button';b.id='f-'+k;b.innerHTML='<img alt="" src="'+img(ico)+'"><span>'+rot+'</span>';
     b.onclick=()=>{tocar('clique');
+      if(k==='voltar')return vai(MEU,CERCA+3,'lar');if(k==='picape')return picapeBotao();
       if(k==='mochila')return mochila('coisas');if(k==='dormir')return dormir();if(k==='sair'){rotaCasa(P,180,48);P.meta='sair';return;}if(k==='decorar')return decorar();
       if(k==='semente'&&(ferramenta==='semente'||!tem('s_'+semente))){ferramenta=k;rotulos();return sementes();}
       ferramenta=k;rotulos();};
@@ -669,10 +672,10 @@ function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt)
       (s.h||[]).forEach((o,i)=>{if(canteiros[i]&&(!o.k||PLANTAS[o.k]))Object.assign(canteiros[i],o);});
       (s.arv||[]).forEach((o,i)=>{if(arvores[i]){arvores[i].hp=o[0];arvores[i].t=o[1];}});
       (s.gente||[]).forEach((o,i)=>{if(GENTE[i]){GENTE[i].energia=clamp(+o[0]||0,0,100);GENTE[i].tarefa=TAREFAS[o[1]]?o[1]:'';}});
-      if(GENTE[s.ativo])P=GENTE[s.ativo];
+      if(GENTE[s.ativo])P=GENTE[s.ativo];cidadeLe(s.cid);
       itens=(s.it||[]).filter(i=>NOME[i[0]]).map(i=>({k:i[0],x:i[1],y:i[2],t:0}));
       if(dormindo){animais.forEach(a=>a.st='sleep');$('sono').hidden=false;$('sonoTxt').textContent='A fazenda está dormindo.';}
-      else aviso('Jogo carregado, '+jogadora+': nível '+nivel()+', dia '+(Math.floor(relogio/DIA)+1)+', '+moedas+' moedas. Continua de onde parou.');
+      else aviso('Jogo carregado, '+jogadora+': nível '+nivel()+', dia '+(Math.floor(relogio/DIA)+1)+', '+moedas+' moedas. Continua de onde parou.'+(viuCidade?'':' Novidade: o portão "Rua", do lado direito da fazenda, leva à cidade das fazendas.'));
     }else novidades=true;
     if(novidades)mochila('ajuda');
   }else boasVindas();
