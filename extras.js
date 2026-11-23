@@ -48,12 +48,12 @@ function poleiro(){
   if(k<.9)return{x:VIVEIRO.x+(R()-.5)*8,y:VIVEIRO.y+.6,h:52};
   let x,y,n=0;do{x=20+R()*(WW-40);y=TOP+20+R()*(WH-TOP-40);}while((noLago(x,y,1.1)||naHorta(x,y))&&++n<8);return{x,y,h:0};
 }
-function recolheNinho(){if(!ninho)return false;const n=ninho;ninho=0;dizer(GALINHEIRO.x,GALINHEIRO.y-38,'+'+n+' Ovo'+(n>1?'s':''));tocar('pop',GALINHEIRO.x,GALINHEIRO.y);soma('ovo',n);ganha(2*n);return true;}
-function pescaAuto(f){f.pausa=4.5;if(!gasta(f,3))return false;tocar('agua',f.x,f.y);if(R()<peixes/(peixes+5)){peixes--;dizer(f.x,f.y-34*f.e,'+1 Peixe');soma('peixe',1);ganha(3);}return true;}
+function recolheNinho(){if(!ninho)return false;const n=ninho;ninho=0;dizer(GALINHEIRO.x,GALINHEIRO.y-38,'+'+n+' Ovo'+(n>1?'s':''));tocar('pop',GALINHEIRO.x,GALINHEIRO.y);soma('ovo',n);ganha(2*n);conta('bicho',n);return true;}
+function pescaAuto(f){f.pausa=4.5;if(!gasta(f,3))return false;tocar('agua',f.x,f.y);if(R()<peixes/(peixes+5)){peixes--;dizer(f.x,f.y-34*f.e,'+1 Peixe');soma('peixe',1);ganha(3);conta('peixe',1);}return true;}
 function irPescar(){const a=Math.atan2((P.y-LAGO.y)/LAGO.ry,(P.x-LAGO.x)/LAGO.rx);P.rota=[];P.tx=clamp(LAGO.x+Math.cos(a)*LAGO.rx*1.14,8,WW-8);P.ty=clamp(LAGO.y+Math.sin(a)*LAGO.ry*1.14,TOP+6,WH-5);P.meta='pescar';}
 function pescar(){
   if(pesca)return;if(!gasta(P,3))return;P.dir=LAGO.x>P.x?1:-1;const k=.3+R()*.3;
-  pesca={t:2.5+R()*3,bx:P.x+(LAGO.x-P.x)*k,by:P.y+(LAGO.y-P.y)*k};tocar('agua');
+  pesca={t:(2.5+R()*3)*(1-.06*melh.anzol),bx:P.x+(LAGO.x-P.x)*k,by:P.y+(LAGO.y-P.y)*k};tocar('agua');
 }
 function fofoca(soUrgente){
   const u=[],ph=relogio%DIA/DIA;
@@ -79,7 +79,7 @@ function extrasPasso(dt){
   louro.fala=Math.max(0,louro.fala-dt);
   if((louro.prox-=dt)<=0){louro.prox=55+R()*30;const t=fofoca(true);if(t&&$('fundo').hidden)louroFala(t);}
   if(pesca){if(P.mov||cena!=='fazenda')pesca=null;else if((pesca.t-=dt)<=0){
-    if(R()<peixes/(peixes+5)){peixes--;dizer(P.x,P.y-38,'+1 Peixe');tocar('colher');soma('peixe',1);ganha(3);}else dizer(P.x,P.y-38,peixes?'Escapou!':'O lago está sem peixe.');pesca=null;}}
+    if(R()<peixes/(peixes+5)){peixes--;dizer(P.x,P.y-38,'+1 Peixe');tocar('colher');soma('peixe',1);ganha(3);conta('peixe',1);}else dizer(P.x,P.y-38,peixes?'Escapou!':'O lago está sem peixe.');pesca=null;}}
   if(cena==='fazenda')foraLago(P,P.tx,P.ty);
   animais.forEach(a=>foraLago(a,a.st==='walk'?a.tx:Q.x,a.st==='walk'?a.ty:Q.y));GENTE.forEach(f=>{if(f!==P&&!f.dentro)foraLago(f,f.tx,f.ty);});
   passaros.forEach(b=>{

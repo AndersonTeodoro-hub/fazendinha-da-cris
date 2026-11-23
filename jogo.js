@@ -59,9 +59,9 @@ const STATS=['comida','agua','amor'];
 let animais=[],potes=[],itens=[],coracoes=[],textos=[],bola=null,sel=null,ferramenta='amor';
 let moedas=40,jogadora='',som=true,T=0,relogio=DIA*.05,chamar=0,noite=false,escV=0,sorriso=0,dormindo=false,dormNoite=false,cena='fazenda',decor=null,fogo=0,refeicao=null,tvOn=false;
 let inv={racao:5,s_cenoura:4,s_capim:2},semente='cenoura',casa={parede:0,moveis:[]},familia={ele:'Esposo',filha:'Filha'};
-const novoCant=i=>({x:58+i%4*32,y:(i<12?246:270)+(i/4|0)*26,lavrado:i<12,k:null,g:0,agua:0,seco:0,pronto:0,morta:false});
+const MAXC=60,novoCant=i=>({x:i<44?58+i%4*32:186+(i-44)%2*32,y:i<44?(i<12?246:270)+(i/4|0)*26:348+((i-44)/2|0)*26,lavrado:i<12,k:null,g:0,agua:0,seco:0,pronto:0,morta:false});
 const canteiros=[];for(let i=0;i<12;i++)canteiros.push(novoCant(i));
-const arvores=[[330,214],[376,242],[424,210],[454,266],[330,430],[440,424],[448,350],[505,176],[600,230],[730,200],[560,330],[650,392],[716,300],[486,500],[300,480],[150,450],[716,526]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
+const arvores=[[330,214],[376,242],[424,210],[454,266],[330,430],[440,424],[448,350],[505,176],[600,230],[730,200],[560,330],[650,392],[716,300],[486,500],[300,480],[262,452],[716,526]].map(([x,y],i)=>({x,y,i,hp:3,t:0,total:REBROTA,treme:0}));
 const pessoaNova=(id,x,y,e,o)=>({id,x,y,tx:x,ty:y,dir:1,ph:0,mov:false,meta:null,rota:[],wait:1,pausa:0,e,o,energia:100,tarefa:'',dentro:false,comeu:false});
 const GENTE=[pessoaNova('mae',240,170,1.2,{saia:1,avental:1,cor:'#e0475a',cab:'#6b3a1f',tranca:1,chapeu:1,fita:'#e0475a'}),
   pessoaNova('ele',424,TOP+30,1.3,{cor:'#e9a23a',cab:'#4a2f1a',chapeu:1,fita:'#3f6fb5',barba:1,f:1.7}),
@@ -139,7 +139,7 @@ function tocar(n,x,y){let v=.42;if(x!==undefined){if(cena!=='fazenda')return;v*=
 const voz=a=>tocar(SP[a.t].sfx,a.x,a.y);
 
 /* ---------- gravar ---------- */
-function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,cid:cidadeSalva(),melh,px:cena==='cidade'?WW-28:Math.round(P.x),py:cena==='cidade'?PORTAO.y:Math.round(P.y),it:itens.map(i=>[i.k,Math.round(i.x),Math.round(i.y)]),visita,ninho,peixes,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
+function gravar(){if(!jogadora)return;try{localStorage.setItem('fazendinhaHD',JSON.stringify({v:4,mv:2,fe:feitos,cid:cidadeSalva(),melh,px:cena==='cidade'?WW-28:Math.round(P.x),py:cena==='cidade'?PORTAO.y:Math.round(P.y),it:itens.map(i=>[i.k,Math.round(i.x),Math.round(i.y)]),visita,ninho,peixes,xp,pedidos,diaPed,jogadora,moedas,som,t:Date.now(),relogio,dormindo,dormNoite,inv,semente,casa,familia,fogo,tvOn,
   ativo:GENTE.indexOf(P),gente:GENTE.map(p=>[Math.round(p.energia),p.tarefa]),
   h:canteiros.map(c=>({lavrado:c.lavrado,k:c.k,g:c.g,agua:c.agua,seco:c.seco,pronto:c.pronto,morta:c.morta})),arv:arvores.map(a=>[a.hp,a.t]),
   a:animais.map(a=>({t:a.t,n:a.n,c:a.c,x:Math.round(a.x),y:Math.round(a.y),comida:a.comida,agua:a.agua,amor:a.amor}))}));}catch(e){}}
@@ -212,23 +212,23 @@ const mimo=(x,y)=>{for(let i=0;i<3;i++)coracoes.push({x:x-6+i*6,y:y-(i%2)*3,t:-i
 const mimoA=a=>mimo(a.x,a.y-SP[a.t].h-2);
 function aviso(s){const e=$('aviso');e.textContent=s;e.hidden=false;clearTimeout(aviso.t);aviso.t=setTimeout(()=>e.hidden=true,5200);}
 const naHorta=(x,y)=>x>30&&x<182&&((y>222&&y<322)||(canteiros.length>12&&y>328&&y<426));
-function gasta(p,c){c*=[1,.8,.65,.5][melh.ferr];if(p.energia<c){if(p===P)aviso(nomeDe(p)+' está sem energia. Coma à mesa, coma um prato da mochila, durma à noite ou troque de pessoa.');return false;}p.energia-=c;return true;}
+function gasta(p,c){c*=1-.075*melh.ferr;if(p.energia<c){if(p===P)aviso(nomeDe(p)+' está sem energia. Coma à mesa, coma um prato da mochila, durma à noite ou troque de pessoa.');return false;}p.energia-=c;return true;}
 
 function crescer(dt){
   let m=0;
   canteiros.forEach(c=>{if(!c.k||c.morta)return;const p=PLANTAS[c.k];
-    if(c.g<p.t){if(chuva)c.agua=REGA;if(c.agua>0){c.agua-=dt*secaMul;c.g+=dt*crescMul;c.seco=0;}else if((c.seco+=dt)>SECA){c.morta=true;m++;}}
+    if(c.g<p.t){if(chuva)c.agua=REGA;if(c.agua>0){c.agua-=dt*secaMul;c.g+=dt*crescMul*(1+.06*melh.adubo);c.seco=0;}else if((c.seco+=dt)>SECA){c.morta=true;m++;}}
     else if((c.pronto+=dt)>p.janela){c.morta=true;m++;}});
   arvores.forEach(a=>{if(a.hp<=0&&(a.t-=dt)<=0)a.hp=3;});
   fogo=Math.max(0,fogo-dt);
   return m;
 }
 /* ações que qualquer pessoa da família pode fazer */
-function regarC(c,p){if(!(c.k&&!c.morta&&c.g<PLANTAS[c.k].t&&c.agua<REGA*.9)||!gasta(p,1.5))return false;c.agua=REGA*(1+.25*melh.regador);c.seco=0;tocar('regar',c.x,c.y);return true;}
+function regarC(c,p){if(!(c.k&&!c.morta&&c.g<PLANTAS[c.k].t&&c.agua<REGA*.9)||!gasta(p,1.5))return false;c.agua=REGA*(1+.15*melh.regador);c.seco=0;tocar('regar',c.x,c.y);return true;}
 function lavrarC(c,p){if((c.k&&!c.morta)||(c.lavrado&&!c.k)||!gasta(p,2))return false;c.lavrado=true;c.k=null;c.morta=false;tocar('enxada',c.x,c.y);return true;}
 function colherC(c,p){if(!c.k||c.morta||c.g<PLANTAS[c.k].t||!gasta(p,1))return false;const pl=PLANTAS[c.k],y=c.y-12;
-  if(pl.racao){dizer(c.x,y,'+'+pl.racao+' Ração');soma('racao',pl.racao);}else{dizer(c.x,y,'+1 '+pl.nome);soma(c.k,1);}c.k=null;c.lavrado=false;tocar('colher',c.x,c.y);ganha(2+(pl.sem/3|0));return true;}
-function cortar(a,p){if(a.hp<=0||!gasta(p,5))return false;a.hp--;a.treme=1;tocar('machado',a.x,a.y);dizer(a.x,a.y-30,'+1 Madeira');soma('madeira',1);ganha(1);p.dir=a.x>p.x?1:-1;
+  if(pl.racao){dizer(c.x,y,'+'+pl.racao+' Ração');soma('racao',pl.racao);}else{dizer(c.x,y,'+1 '+pl.nome);soma(c.k,1);}c.k=null;c.lavrado=false;conta('colher',1);tocar('colher',c.x,c.y);ganha(2+(pl.sem/3|0));return true;}
+function cortar(a,p){if(a.hp<=0||!gasta(p,5))return false;a.hp--;a.treme=1;tocar('machado',a.x,a.y);dizer(a.x,a.y-30,'+1 Madeira');soma('madeira',1);ganha(1);conta('madeira',1);p.dir=a.x>p.x?1:-1;
   if(a.hp<=0){a.t=a.total;tocar('cair',a.x,a.y);dizer(a.x,a.y-40,'Caiu!');}return true;}
 function acordar(a){if(a.st==='sleep'){a.st='idle';a.wait=2;}a.acordado=10;}
 function carinho(a,p){
@@ -242,7 +242,7 @@ function dar(a,k,p){
   if(!gasta(p,1))return false;if(k==='comida')soma('racao',-1);
   a[k]=100;a.hop=.3;dizer(a.x,y,k==='comida'?'Nham!':'Glup!');tocar(k==='comida'?'comer':'beber',a.x,a.y);acordar(a);ganha(1);return true;
 }
-function apanhar(i){const it=itens[i];if(!it)return;dizer(it.x,it.y-9,'+1 '+NOME[it.k]);tocar('pop',it.x,it.y);itens.splice(i,1);soma(it.k,1);ganha(2);}
+function apanhar(i){const it=itens[i];if(!it)return;dizer(it.x,it.y-9,'+1 '+NOME[it.k]);tocar('pop',it.x,it.y);itens.splice(i,1);soma(it.k,1);ganha(2);conta('bicho',1);}
 
 function pensar(a){
   const sp=SP[a.t];
@@ -263,7 +263,7 @@ function atualizar(a,dt){
   const sp=SP[a.t],f=feliz(a);
   a.comida=Math.max(0,a.comida-dt*70/900);a.agua=Math.max(0,a.agua-dt*70/800);a.amor=Math.max(0,a.amor-dt*70/600);
   a.hop=Math.max(0,a.hop-dt);a.cd=Math.max(0,a.cd-dt);a.acordado=Math.max(0,a.acordado-dt);a.vem=Math.max(0,a.vem-dt);a.fala=Math.max(0,a.fala-dt);a.mov=false;
-  if(f>=55&&(a.prod-=dt)<=0){a.prod=(150+R()*100)*(a.t==='galinha'?1-.15*melh.galinheiro:1);if(a.t==='galinha'&&ninho<12+6*melh.galinheiro)ninho++;else if(itens.length<14){itens.push({k:sp.prod,x:clamp(a.x-a.dir*(sp.w/2+2),10,WW-10),y:a.y+2,t:0});tocar('pop',a.x,a.y);}}
+  if(f>=55&&(a.prod-=dt)<=0){a.prod=(150+R()*100)*(1-.06*(a.t==='galinha'?melh.galinheiro:melh.ordenha));if(a.t==='galinha'&&ninho<12+4*melh.galinheiro)ninho++;else if(itens.length<14){itens.push({k:sp.prod,x:clamp(a.x-a.dir*(sp.w/2+2),10,WW-10),y:a.y+2,t:0});tocar('pop',a.x,a.y);}}
   if(a.st!=='sleep'&&a.st!=='eat'&&R()<dt/45)voz(a);
   if((a.th-=dt)<=0){a.th=.5;pensar(a);}
   switch(a.st){
@@ -304,7 +304,7 @@ function familiaPasso(f,dt){
   if(f.tarefa&&f.energia>0){
     if((f.pausa-=dt)>0)return;const t=alvoTarefa(f);
     if(t){const pl=f.tarefa==='regar'||f.tarefa==='lavrar'||f.tarefa==='colher',ar=f.tarefa==='lenha';
-      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64*(1+.12*melh.botas),dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=.9;fazTarefa(f,t);if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
+      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64*(1+.06*melh.botas),dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=.9;fazTarefa(f,t);if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
       return;}
   }
   if((f.wait-=dt)<=0){f.wait=3+R()*6;const h=f.tarefa&&f.energia>0;f.tx=h?186+R()*60:330+R()*130;f.ty=h?236+R()*70:TOP+14+R()*56;}
@@ -578,13 +578,13 @@ function loja(aba){
   if(abaLoja==='bichos'){h+='<label for="nomeBicho">Nome do novo bicho</label><input id="nomeBicho" maxlength="12" autocomplete="off"><ul>';
     for(const t in SP){const s=SP[t];h+=linha(t,s.nome,'Dá '+NOME[s.prod].toLowerCase(),(nivel()<NV_BICHO[t]?'<button type="button" disabled>Nível '+NV_BICHO[t]+'</button>':'<button type="button" data-bicho="'+t+'"'+(moedas<s.preco||animais.length>=16?' disabled':'')+'>'+s.preco+' moedas</button>'));}}
   else if(abaLoja==='horta'){h+='<ul>'+linha('racao','Ração','Uma por bicho por dia. Tem: '+tem('racao'),'<button type="button" data-item="racao" data-p="4"'+(moedas<4?' disabled':'')+'>4 moedas</button>');
-    if(canteiros.length<24)h+=linha('enxada','Novo canteiro','Mais terra para plantar. Tem '+canteiros.length+' de 24.',nivel()<2?'<button type="button" disabled>Nível 2</button>':'<button type="button" id="maisCant"'+(moedas<precoCant()?' disabled':'')+'>'+precoCant()+' moedas</button>');
+    if(canteiros.length<MAXC)h+=linha('enxada','Novo canteiro','Mais terra para plantar. Tem '+canteiros.length+' de '+MAXC+'.',nivel()<2?'<button type="button" disabled>Nível 2</button>':'<button type="button" id="maisCant"'+(moedas<precoCant()?' disabled':'')+'>'+precoCant()+' moedas</button>');
     for(const k in PLANTAS){const p=PLANTAS[k];h+=linha('s_'+k,'Semente de '+p.nome.toLowerCase(),'Cresce em '+tempo(p.t)+'. '+rende(p)+' Tem: '+tem('s_'+k),
       (nivel()<NV_PLANTA[k]?'<button type="button" disabled>Nível '+NV_PLANTA[k]+'</button>':'<button type="button" data-item="s_'+k+'" data-p="'+p.sem+'"'+(moedas<p.sem?' disabled':'')+'>'+p.sem+' moedas</button>'));}}
   else if(abaLoja==='casa'){h+='<ul>';for(const k in MOVEIS){const d=MOVEIS[k];h+=linha('m_'+k,d.nome,'Na mochila: '+tem('m_'+k),(nivel()<(NV_MOVEL[k]||1)?'<button type="button" disabled>Nível '+NV_MOVEL[k]+'</button>':'<button type="button" data-item="m_'+k+'" data-p="'+d.preco+'"'+(moedas<d.preco?' disabled':'')+'>'+d.preco+' moedas</button>'+
       (d.mad?'<button type="button" data-fazer="'+k+'"'+(tem('madeira')<d.mad?' disabled':'')+'>Fazer: '+d.mad+' madeira</button>':'')));}}
-  else if(abaLoja==='melhorias'){h+='<p><small>Cada melhoria tem três graus e fica para sempre.</small></p><ul>';for(const k in MELHORIAS){const m=MELHORIAS[k],t=melh[k];
-    h+=linha(m.ico,m.nome+(t?' '+'I'.repeat(t):''),t<3?'Próximo grau: '+m.desc(t+1):'No máximo. '+m.desc(3),t>=3?'':nivel()<nvMelh(t)?'<button type="button" disabled>Nível '+nvMelh(t)+'</button>':'<button type="button" data-melh="'+k+'"'+(moedas<precoMelh(t)?' disabled':'')+'>'+precoMelh(t)+' moedas</button>');}}
+  else if(abaLoja==='melhorias'){h+='<p><small>Cada melhoria tem dez graus e fica para sempre.</small></p><ul>';for(const k in MELHORIAS){const m=MELHORIAS[k],t=melh[k];
+    h+=linha(m.ico,m.nome+' · grau '+t+' de '+GRAUS,t<GRAUS?'Próximo grau: '+m.desc(t+1):'No máximo: '+m.desc(GRAUS),t>=GRAUS?'':nivel()<nvMelh(t)?'<button type="button" disabled>Nível '+nvMelh(t)+'</button>':'<button type="button" data-melh="'+k+'"'+(moedas<precoMelh(t)?' disabled':'')+'>'+precoMelh(t)+' moedas</button>');}}
   else{const ks=vendaveis(),tot=ks.reduce((s,k)=>s+(k!=='madeira'?VENDA[k]*inv[k]:0),0);
     h+=(tot?'<button type="button" id="tudo">Vender tudo menos a madeira: +'+tot+' moedas</button>':'')+'<p><small>A vovó usa ovos, leite e colheitas nas refeições. Vender tudo deixa a despensa vazia.</small></p><ul>';
     if(!ks.length)h+='<li class="vazio">Nada para vender. Colha, recolha ovos e leite, ou cozinhe.</li>';
@@ -603,7 +603,7 @@ function mochila(aba){
   abaMochila=aba||abaMochila;let h='<h2>Mochila</h2>'+abas([['coisas','Coisas'],['bichos','Bichos'],['ajuda','Como jogar']],abaMochila);
   if(abaMochila==='coisas'){const ks=Object.keys(inv);h+='<p>Moedas: <b>'+moedas+'</b>. Para vender, abra a Loja, aba Vender.</p><ul>';
     if(!ks.length)h+='<li class="vazio">A mochila está vazia.</li>';
-    ks.forEach(k=>{h+=linha(k,nomeItem(k)+' ×'+inv[k],RECEITAS[k]?'Comer dá 50% de energia':VENDA[k]?'Vale '+VENDA[k]+' cada':'',RECEITAS[k]?'<button type="button" data-comer="'+k+'">'+esc(nomeDe(P))+' come</button>':'');});
+    ks.forEach(k=>{h+=linha(k,nomeItem(k)+' ×'+inv[k],k==='presente'?'Um mimo que o cachorro ou o gato trouxe. Abra para ver o que tem dentro.':RECEITAS[k]?'Comer dá 50% de energia':VENDA[k]?'Vale '+VENDA[k]+' cada':'',k==='presente'?'<button type="button" id="abreP">Abrir</button>':RECEITAS[k]?'<button type="button" data-comer="'+k+'">'+esc(nomeDe(P))+' come</button>':'');});
     h+='</ul>';}
   else if(abaMochila==='bichos'){h+='<button type="button" id="todos">Chamar todos</button><ul>';
     animais.forEach((a,i)=>{h+='<li><img alt="" src="'+img(a.t)+'"><span><b>'+esc(a.n)+'</b><small>'+STATS.map(k=>'<i class="mini'+(a[k]<30?' baixo':'')+'" title="'+k+'"><i style="width:'+a[k]+'%"></i></i>').join('')+'</small></span><span class="bots"><button type="button" data-chamar="'+i+'">Chamar</button></span></li>';});
@@ -616,6 +616,7 @@ function mochila(aba){
     '<li><b>Dormir:</b> de dia, pausa o jogo. À noite, todos dormem, acordam de manhã e com a energia cheia. O jogo guarda sozinho e fica parado enquanto estiver fechado: ao voltar, continua de onde parou.</li></ul>';
   abrir(h+'<button type="button" id="sairM">Fechar</button>');ligar(mochila);
   if($('todos'))$('todos').onclick=()=>{fechar();if(cena!=='fazenda')return aviso('Saia de casa para chamar os bichos.');chamar=5;animais.forEach(a=>{acordar(a);a.th=0;});osc(900,.3,{f2:1500,v:.4});};
+  if($('abreP'))$('abreP').onclick=()=>{const t=abrePresente();mochila();if(t)aviso('Dentro do presente havia: '+t+'!');};
   em('[data-comer]',d=>{soma(d.comer,-1);P.energia=Math.min(100,P.energia+50);tocar('comer');mochila();});em('[data-chamar]',d=>{fechar();chamarBicho(animais[+d.chamar]);});
 }
 function familiaM(){
@@ -642,7 +643,7 @@ function cozinha(){
     h+=linha(k,r.nome,Object.keys(r.ing).map(i=>r.ing[i]+' '+NOME[i].toLowerCase()+' ('+tem(i)+')').join(', ')+'. Vale '+VENDA[k]+'.','<button type="button" data-coz="'+k+'"'+(ok?'':' disabled')+'>Cozinhar</button>');}
   abrir(h+'</ul><button type="button" id="sairM">Fechar</button>');ligar(cozinha);
   $('acender').onclick=()=>{soma('madeira',-1);fogo=Math.min(fogo+300,900);tocar('fogo');cozinha();};
-  em('[data-coz]',d=>{const r=RECEITAS[d.coz];for(const i in r.ing)soma(i,-r.ing[i]);soma(d.coz,1);tocar('colher');ganha(6);cozinha();});
+  em('[data-coz]',d=>{const r=RECEITAS[d.coz];for(const i in r.ing)soma(i,-r.ing[i]);soma(d.coz,1);tocar('colher');ganha(6);conta('prato',1);cozinha();});
 }
 function boasVindas(){
   abrir('<h2>Fazendinha dos Bichos</h2><p>Os bichos estão à espera de alguém que cuide deles.</p><label for="nomeDela">Qual é o seu nome?</label>'+
@@ -669,7 +670,7 @@ function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt)
   extrasInicio();F3.liga();cinto();ajustar();
   let novidades=false,px0=240,py0=170;const s=ler();
   if(s&&s.jogadora&&Array.isArray(s.a)&&s.a.length){
-    jogadora=s.jogadora;moedas=s.moedas|0;if(s.melh)for(const k in melh)melh[k]=clamp(s.melh[k]|0,0,3);if(s.px>0&&cena==='fazenda'){px0=s.px;py0=Math.max(s.py,TOP+20);}
+    jogadora=s.jogadora;moedas=s.moedas|0;if(s.melh)for(const k in melh)melh[k]=clamp((s.melh[k]|0)*(s.mv?1:2),0,GRAUS);if(s.fe)for(const k in feitos)feitos[k]=Math.max(0,s.fe[k]|0);if(s.px>0&&cena==='fazenda'){px0=s.px;py0=Math.max(s.py,TOP+20);}
     visita=s.visita&&Array.isArray(s.visita.trocas)?s.visita:null;ninho=s.ninho|0;peixes=s.peixes===undefined?6:s.peixes|0;if(s.peixes===undefined)novidades=true;
     xp=s.xp===undefined?120:+s.xp||0;diaPed=s.diaPed===undefined?-1:s.diaPed|0;
     pedidos=Array.isArray(s.pedidos)?s.pedidos.filter(p=>p&&p.q&&Object.keys(p.q).every(k=>NOME[k])):[];if(s.xp===undefined)novidades=true;
@@ -682,7 +683,7 @@ function quadro(ts){const dt=Math.min(.05,(ts-antes)/1000||0);antes=ts;passo(dt)
       inv=Object.fromEntries(Object.entries(bruto).filter(([k,v])=>v>0&&(NOME[k]||(k[0]==='s'&&PLANTAS[k.slice(2)])||(k[0]==='m'&&MOVEIS[k.slice(2)]))));
       if(PLANTAS[s.semente])semente=s.semente;if(s.familia)familia=Object.assign(familia,s.familia);
       if(s.casa&&Array.isArray(s.casa.moveis))casa={parede:s.casa.parede|0,moveis:s.casa.moveis.filter(m=>{if(!MOVEIS[m.k])return false;if(MOVEIS[m.k].parede&&m.y>40){inv['m_'+m.k]=(inv['m_'+m.k]|0)+1;return false;}return true;})};
-      while(canteiros.length<Math.min(24,(s.h||[]).length))canteiros.push(novoCant(canteiros.length));
+      while(canteiros.length<Math.min(MAXC,(s.h||[]).length))canteiros.push(novoCant(canteiros.length));
       (s.h||[]).forEach((o,i)=>{if(canteiros[i]&&(!o.k||PLANTAS[o.k]))Object.assign(canteiros[i],o);});
       (s.arv||[]).forEach((o,i)=>{if(arvores[i]){arvores[i].hp=o[0];arvores[i].t=o[1];}});
       (s.gente||[]).forEach((o,i)=>{if(GENTE[i]){GENTE[i].energia=clamp(+o[0]||0,0,100);GENTE[i].tarefa=TAREFAS[o[1]]?o[1]:'';}});

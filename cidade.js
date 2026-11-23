@@ -9,8 +9,8 @@ const VZS=[
 VZS.forEach(v=>Object.assign(v,{x:v.gx-30,y:118,dir:1,ph:0,mov:false,wait:2,tx:v.gx-30,ty:118,am:0,pres:0,falou:false,trocas:[],quer:null,chama:false}));
 const FALAS=['Esse ano a chuva veio na hora certa, graças a Deus.','O papagaio da sua fazenda já contou a novidade para a rua inteira.','Quem planta com carinho colhe em dobro.','Passe lá em casa para um café qualquer dia.','No mercado a caixa de sementes sai bem mais em conta.','Churrasco na praça junta a vizinhança toda.','Bicho bem tratado dá produto melhor, pode reparar.','Seu Chico, o mascate, só aparece dia sim, dia não.'];
 let picape={x:160,y:RUA-9,dir:1},carga=[],hospede=null,churras=null,churDia=-1,cidDia=-1,viuCidade=false,motor=0;
-const velP=()=>P.carro?230:84*(1+.12*melh.botas);
-const pMerc=k=>Math.ceil(VENDA[k]*1.25);
+const velP=()=>P.carro?230:84*(1+.06*melh.botas);
+const pMerc=k=>Math.ceil(VENDA[k]*(1.25+.02*melh.balanca));
 const campainha=()=>{osc(1050,.5,{v:.4});osc(830,.8,{v:.4,t:.28});};
 
 function cidadeSalva(){return{d:cidDia,cd:churDia,viu:viuCidade,carga,pk:[Math.round(picape.x),Math.round(picape.y)],h:hospede,v:VZS.map(v=>({am:v.am,pres:v.pres,falou:v.falou,trocas:v.trocas,quer:v.quer}))};}
@@ -98,19 +98,19 @@ function vizM(i,fala){
   if(!v.quer&&!v.trocas.length)h+='<li class="vazio">Por hoje já fizeram todos os negócios.</li>';
   abrir(h+'</ul><p><small>Conversar e negociar aumenta a amizade. Com 30, 60 e 100 de amizade vêm presentes da fazenda '+(v.ela?'dela':'dele')+'.</small></p><button type="button" id="sairM">Fechar</button>');ligar(()=>vizM(i));
   $('prosa').onclick=()=>{v.falou=true;amizade(v,5);tocar('carinho');gravar();vizM(i,FALAS[R()*FALAS.length|0]);};
-  if($('vq'))$('vq').onclick=()=>{const q=v.quer,n=Math.min(tem(q.k),q.q);if(!n)return;moedas+=q.p*n;soma(q.k,-n);q.q-=n;if(!q.q)v.quer=null;tocar('moeda');ganha(3);amizade(v,4);mudou();vizM(i,'Negócio fechado! Muito obrigad'+(v.ela?'a':'o')+'.');};
-  em('[data-tr]',d=>{const t=v.trocas[+d.tr];if(!t||tem(t.dar[0])<t.dar[1])return;soma(t.dar[0],-t.dar[1]);if(t.rec[0]==='moedas')moedas+=t.rec[1];else soma(t.rec[0],t.rec[1]);v.trocas.splice(+d.tr,1);tocar('moeda');ganha(4);amizade(v,4);mudou();vizM(i,'Boa troca para os dois!');});
+  if($('vq'))$('vq').onclick=()=>{const q=v.quer,n=Math.min(tem(q.k),q.q);if(!n)return;moedas+=q.p*n;soma(q.k,-n);q.q-=n;if(!q.q)v.quer=null;tocar('moeda');ganha(3);conta('negocio',1);amizade(v,4);mudou();vizM(i,'Negócio fechado! Muito obrigad'+(v.ela?'a':'o')+'.');};
+  em('[data-tr]',d=>{const t=v.trocas[+d.tr];if(!t||tem(t.dar[0])<t.dar[1])return;soma(t.dar[0],-t.dar[1]);if(t.rec[0]==='moedas')moedas+=t.rec[1];else soma(t.rec[0],t.rec[1]);v.trocas.splice(+d.tr,1);tocar('moeda');ganha(4);conta('negocio',1);amizade(v,4);mudou();vizM(i,'Boa troca para os dois!');});
 }
 let abaMerc='atacado';
 function mercadoM(aba){
-  abaMerc=aba||abaMerc;const perto=P.carro||Math.hypot(picape.x-MERC.x,picape.y-RUA)<170,cap=perto?6:1,cheio=carga.length>=cap;
-  let h='<h2>Mercado dos Fazendeiros</h2><p>Moedas: <b>'+moedas+'</b> · Carga: <b>'+carga.length+' de '+cap+'</b> '+(perto?'caixas na picape':'caixa. A pé só dá para levar 1: venha de picape para levar 6')+'.</p>'+abas([['atacado','Comprar caixas'],['feira','Vender na feira']],abaMerc)+'<ul>';
+  abaMerc=aba||abaMerc;const perto=P.carro||Math.hypot(picape.x-MERC.x,picape.y-RUA)<170,cap=perto?6+melh.cacamba:1,cheio=carga.length>=cap;
+  let h='<h2>Mercado dos Fazendeiros</h2><p>Moedas: <b>'+moedas+'</b> · Carga: <b>'+carga.length+' de '+cap+'</b> '+(perto?'caixas na picape':'caixa. A pé só dá para levar 1: venha de picape para levar '+(6+melh.cacamba))+'.</p>'+abas([['atacado','Comprar caixas'],['feira','Vender na feira']],abaMerc)+'<ul>';
   if(abaMerc==='atacado'){
     const cx1=(k,ico,nome,p,desc)=>linha(ico,nome,desc+' Tem: '+tem(k),'<button type="button" data-cx="'+k+'" data-p="'+p+'"'+(moedas<p||cheio?' disabled':'')+'>'+p+' moedas</button>');
     h+=cx1('racao','racao','Caixa com 10 rações',32,'Na loja sairia por 40.')+cx1('madeira','madeira','Caixa com 10 madeiras',24,'Para móveis e para o fogão.');
     for(const k in PLANTAS){const p=PLANTAS[k];if(nivel()>=NV_PLANTA[k])h+=cx1('s_'+k,'s_'+k,'Caixa com 10 sementes de '+p.nome.toLowerCase(),p.sem*8,'Na loja sairia por '+p.sem*10+'.');}
     if(carga.length)h+='<li class="vazio">Na carga: '+cargaTxt()+'. As caixas são descarregadas ao chegar ao portão da sua fazenda.</li>';
-  }else{const ks=vendaveis();h+='<li class="vazio">A feira paga 25% a mais do que a loja.</li>';
+  }else{const ks=vendaveis();h+='<li class="vazio">A feira paga '+(25+2*melh.balanca)+'% a mais do que a loja.</li>';
     if(!ks.length)h+='<li class="vazio">Nada para vender. Traga colheitas, ovos, leite ou peixe.</li>';
     ks.forEach(k=>{h+=linha(k,NOME[k]+' ×'+inv[k],'Paga '+pMerc(k)+' cada','<button type="button" data-f1="'+k+'">Vender 1</button>'+(inv[k]>1?'<button type="button" data-ft="'+k+'">Vender '+inv[k]+': +'+pMerc(k)*inv[k]+'</button>':''));});}
   abrir(h+'</ul><button type="button" id="sairM">Fechar</button>');ligar(mercadoM);
@@ -122,7 +122,7 @@ function churrasM(){
   abrir('<h2>Churrasco na praça</h2><p>Chame a vizinhança para um churrasco entre amigos. Você leva 3 comidas da mochila (peixe primeiro, depois ovos, leite e colheitas).</p><p>Todos os vizinhos ganham 8 de amizade, quem está nas suas mãos fica com a energia cheia e você ganha 15 de XP.</p>'+
     '<button type="button" id="acende"'+(feito||tot<3||churras?' disabled':'')+'>'+(feito?'Já houve churrasco hoje':tot<3?'Faltam comidas: tem '+tot+' de 3':'Acender a churrasqueira')+'</button><button type="button" id="sairM">Fechar</button>');ligar(churrasM);
   $('acende').onclick=()=>{let n=3;for(const k of ks)while(n&&tem(k)){inv[k]--;if(!inv[k])delete inv[k];n--;}
-    churDia=d;churras={t:40};P.energia=100;tocar('fogo');VZS.forEach(v=>{v.chama=false;amizade(v,8);});ganha(15);mimo(P.x,P.y-36);mudou();fechar();aviso('A churrasqueira está acesa e a vizinhança vem chegando!');};
+    churDia=d;churras={t:40};P.energia=100;tocar('fogo');VZS.forEach(v=>{v.chama=false;amizade(v,8);});ganha(15);conta('churras',1);mimo(P.x,P.y-36);mudou();fechar();aviso('A churrasqueira está acesa e a vizinhança vem chegando!');};
 }
 
 /* ---------- desenhos ---------- */

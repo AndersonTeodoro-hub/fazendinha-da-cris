@@ -38,7 +38,7 @@ function mascateM(){
   if(!visita.trocas.length)h+='<li class="vazio">Já trocou tudo o que ele trazia hoje.</li>';
   visita.trocas.forEach((t,i)=>{h+='<li class="pessoa"><span><b>Dá '+nome(t.dar)+'</b><small>Tem '+tem(t.dar[0])+'</small><small>Recebe '+nome(t.rec)+'</small></span><span class="bots"><button type="button" data-tr="'+i+'"'+(tem(t.dar[0])>=t.dar[1]?'':' disabled')+'>Trocar</button></span></li>';});
   abrir(h+'</ul><button type="button" id="sairM">Fechar</button>');ligar(mascateM);
-  em('[data-tr]',d=>{const t=visita.trocas[+d.tr];if(!t||tem(t.dar[0])<t.dar[1])return;soma(t.dar[0],-t.dar[1]);if(t.rec[0]==='moedas')moedas+=t.rec[1];else soma(t.rec[0],t.rec[1]);visita.trocas.splice(+d.tr,1);tocar('moeda');ganha(4);mudou();mascateM();});
+  em('[data-tr]',d=>{const t=visita.trocas[+d.tr];if(!t||tem(t.dar[0])<t.dar[1])return;soma(t.dar[0],-t.dar[1]);if(t.rec[0]==='moedas')moedas+=t.rec[1];else soma(t.rec[0],t.rec[1]);visita.trocas.splice(+d.tr,1);tocar('moeda');ganha(4);conta('negocio',1);mudou();mascateM();});
 }
 function vidaToque(x,y){
   if(visita&&!visita.mov&&bate(visita,40,36,x,y)){P.tx=visita.x-18;P.ty=visita.y+3;P.meta=null;tocar('carinho');mascateM();return true;}
