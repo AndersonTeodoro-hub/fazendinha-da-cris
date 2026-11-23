@@ -33,7 +33,7 @@ function extrasChao(g,r){
   el(g,VIVEIRO.x,VIVEIRO.y+1,30,18,'#b9ad98',0,0);el(g,VIVEIRO.x,VIVEIRO.y+1,27,16,'#dcd2bf',0,0);
   g.strokeStyle='rgba(120,105,85,.5)';g.lineWidth=.4;for(const k of[.45,.75]){g.beginPath();g.ellipse(VIVEIRO.x,VIVEIRO.y+1,27*k,16*k,0,0,TAU);g.stroke();}
   g.beginPath();for(let i=0;i<12;i++){const a=i/12*TAU;g.moveTo(VIVEIRO.x+Math.cos(a)*12,VIVEIRO.y+1+Math.sin(a)*7);g.lineTo(VIVEIRO.x+Math.cos(a)*27,VIVEIRO.y+1+Math.sin(a)*16);}g.stroke();
-  el(g,LAGO.x,LAGO.y,LAGO.rx+8,LAGO.ry+6,'#b9a57a',0,0);el(g,LAGO.x,LAGO.y,LAGO.rx+6,LAGO.ry+4.4,'#e6d3a3',0,0);
+  rioChao(g);el(g,LAGO.x,LAGO.y,LAGO.rx+8,LAGO.ry+6,'#b9a57a',0,0);el(g,LAGO.x,LAGO.y,LAGO.rx+6,LAGO.ry+4.4,'#e6d3a3',0,0);
   const q=g.createRadialGradient(LAGO.x,LAGO.y,4,LAGO.x,LAGO.y,LAGO.rx);q.addColorStop(0,'#2f86cf');q.addColorStop(.75,'#49a9e4');q.addColorStop(1,'#8fd2f2');
   g.save();g.translate(LAGO.x,LAGO.y);g.scale(1,LAGO.ry/LAGO.rx);g.translate(-LAGO.x,-LAGO.y);g.beginPath();g.arc(LAGO.x,LAGO.y,LAGO.rx,0,TAU);g.fillStyle=q;g.fill();g.restore();
   for(let i=0;i<14;i++){const a=r()*TAU,d=1.06+r()*.05;el(g,LAGO.x+Math.cos(a)*LAGO.rx*d,LAGO.y+Math.sin(a)*LAGO.ry*d,1.6+r()*1.6,1+r(),r()<.5?'#a9adb8':'#8f949f',0,0);}
@@ -81,7 +81,7 @@ function extrasPasso(dt){
   if(pesca){if(P.mov||cena!=='fazenda')pesca=null;else if((pesca.t-=dt)<=0){
     if(R()<peixes/(peixes+5)){peixes--;dizer(P.x,P.y-38,'+1 Peixe');tocar('colher');soma('peixe',1);ganha(3);conta('peixe',1);}else dizer(P.x,P.y-38,peixes?'Escapou!':'O lago está sem peixe.');pesca=null;}}
   if(cena==='fazenda')foraLago(P,P.tx,P.ty);
-  animais.forEach(a=>foraLago(a,a.st==='walk'?a.tx:Q.x,a.st==='walk'?a.ty:Q.y));GENTE.forEach(f=>{if(f!==P&&!f.dentro)foraLago(f,f.tx,f.ty);});
+  animais.forEach(a=>foraLago(a,a.st==='walk'?a.tx:Q.x,a.st==='walk'?a.ty:Q.y));GENTE.forEach(f=>{if(f!==P&&!f.dentro){foraLago(f,f.tx,f.ty);foraRio(f);}});if(cena==='fazenda')foraRio(P);animais.forEach(foraRio);
   passaros.forEach(b=>{
     if(b.st==='voa'){b.u+=dt/b.dur;const u=Math.min(1,b.u),e=u*u*(3-2*u);b.x=b.sx+(b.alvo.x-b.sx)*e;b.y=b.sy+(b.alvo.y-b.sy)*e;b.h=b.sh+(b.alvo.h-b.sh)*e+Math.sin(Math.PI*u)*(14+b.dur*5);
       if(u>=1){b.st='pousa';b.t=noite?30+R()*30:3+R()*13;b.ref=b.alvo.ref||null;b.h=b.alvo.h;}return;}
@@ -104,6 +104,7 @@ function extrasToque(x,y){
 function extrasDesenho(L,H){
   const{up,fl,somb,P3,txt}=H;
   fl(LAGO.x,LAGO.y,()=>{
+    for(let i=0;i<7;i++){const x=((T*9+i*31)%130)-65,y=(i*17%50)-25+x*.12;if(Math.hypot(x/LAGO.rx,y/LAGO.ry)<.8)el(cx,x,y,4,.6,'rgba(255,255,255,.45)',-.2,0);}
     for(let i=0;i<3;i++){const k=(T*.25+i/3)%1;cx.strokeStyle='rgba(255,255,255,'+(.45-k*.45)+')';cx.lineWidth=.6;cx.beginPath();cx.ellipse(-30+i*32,-10+i*9,4+k*14,(4+k*14)*.5,0,0,TAU);cx.stroke();}
     for(let i=0;i<Math.min(peixes,12);i++){const a=T*(.22+i%3*.06)*(i%2?1:-1)+i*2.1,d=.25+(i*37%50)/100,x=Math.cos(a)*LAGO.rx*d,y=Math.sin(a)*LAGO.ry*d,dx=-Math.sin(a)*(i%2?1:-1)>0?1:-1;
       cx.fillStyle='rgba(20,50,90,.38)';cx.beginPath();cx.ellipse(x,y,3.2,1.5,0,0,TAU);cx.fill();cx.beginPath();cx.moveTo(x-dx*2.6,y);cx.lineTo(x-dx*5,y-1.6);cx.lineTo(x-dx*5,y+1.6);cx.fill();}

@@ -376,7 +376,7 @@ function acaoCanteiro(c,quieto){
 }
 const noCanteiro=(x,y)=>canteiros.find(c=>Math.abs(x-c.x)<14&&Math.abs(y-c.y)<10);
 function pintar(x,y){const c=noCanteiro(x,y);if(c&&!pintados.has(c)){pintados.add(c);acaoCanteiro(c,true);}}
-function alvoAndar(x,y){P.meta=null;if(cena==='casa')rotaCasa(P,x,y);else if(cena==='cidade'){P.rota=[];P.tx=clamp(x,10,CIW-10);P.ty=P.carro?clamp(y,RUA-14,RUA+14):clamp(y,CERCA+2,CIH-8);}else{P.rota=[];P.tx=clamp(x,8,WW-8);P.ty=clamp(y,TOP+6,WH-5);}}
+function alvoAndar(x,y){P.meta=null;if(cena==='casa')rotaCasa(P,x,y);else if(cena==='cidade')cidadeAlvo(x,y);else{P.rota=[];P.tx=clamp(x,8,WW-8);P.ty=clamp(y,TOP+6,WH-5);}}
 function toque(x,y){
   if(!jogadora||dormindo)return;
   if(cena==='casa')return toqueCasa(x,y);
@@ -534,7 +534,7 @@ function hud(){
 /* ---------- interface ---------- */
 const BARRA={
  fazenda:[['amor','Mão','mao'],['enxada','Enxada','enxada'],['semente','Semente','saquinho'],['agua','Regador','regador'],['machado','Machado','machado'],['comida','Ração','racao'],['bola','Bola','bola'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']],
- cidade:[['voltar','Fazenda','porta'],['picape','Picape','picape'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']],
+ cidade:[['voltar','Fazenda','porta'],['picape','Picape','picape'],['lavar','Lavar','regador'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']],
  casa:[['sair','Sair','porta'],['decorar','Decorar','m_sofa'],['mochila','Mochila','mochila'],['dormir','Dormir','lua']]
 };
 const FERR=['amor','enxada','semente','agua','machado','comida','bola'];
@@ -542,7 +542,7 @@ function cinto(){
   const n=$('cinto');n.innerHTML='';
   BARRA[cena].forEach(([k,rot,ico])=>{const b=document.createElement('button');b.type='button';b.id='f-'+k;b.innerHTML='<img alt="" src="'+img(ico)+'"><span>'+rot+'</span>';
     b.onclick=()=>{tocar('clique');
-      if(k==='voltar')return vai(MEU,CERCA+3,'lar');if(k==='picape')return picapeBotao();
+      if(k==='voltar')return vai(MEU,CERCA+3,'lar');if(k==='picape')return picapeBotao();if(k==='lavar')return lavarBotao();
       if(k==='mochila')return mochila('coisas');if(k==='dormir')return dormir();if(k==='sair'){rotaCasa(P,180,48);P.meta='sair';return;}if(k==='decorar')return decorar();
       if(k==='semente'&&(ferramenta==='semente'||!tem('s_'+semente))){ferramenta=k;rotulos();return sementes();}
       ferramenta=k;rotulos();};
