@@ -299,15 +299,19 @@ function fazTarefa(f,t){switch(f.tarefa){
   case 'regar':return regarC(t,f);case 'lavrar':return lavrarC(t,f);case 'colher':return colherC(t,f);case 'lenha':return cortar(t,f);
   case 'recolher':return t===GALINHEIRO?recolheNinho():apanhar(itens.indexOf(t));case 'pescar':return pescaAuto(f);case 'carinho':return carinho(t,f);
   case 'alimentar':return t.comida<50&&tem('racao')?dar(t,'comida',f):dar(t,'agua',f);}}
+const ORDEM={'':'Vou descansar um pouco.',regar:'Vou regar a horta!',lavrar:'Vou passar a enxada!',colher:'Vou colher o que está maduro!',lenha:'Vou cortar lenha!',recolher:'Vou recolher os ovos e os produtos!',carinho:'Vou dar carinho aos bichos!',alimentar:'Vou dar ração e água aos bichos!',pescar:'Vou pescar no lago!'},
+  NADA={regar:'Não há nada para regar agora.',lavrar:'A terra já está toda lavrada.',colher:'Ainda não há nada maduro.',lenha:'As árvores ainda estão crescendo.',recolher:'Não há nada para recolher agora.',carinho:'Os bichos estão todos contentes.',alimentar:'Os bichos estão de barriga cheia.',pescar:'O lago está sem peixe.'},
+  USA={regar:'regador',lavrar:'enxada',colher:'mao',lenha:'machado',recolher:'ovo',carinho:'amor',alimentar:'racao',pescar:'peixe'};
 function familiaPasso(f,dt){
-  f.mov=false;f.alvo=null;
+  f.mov=false;f.alvo=null;f.usa=Math.max(0,(f.usa||0)-dt);
   if(f.dentro){if(!refeicao&&!noite){f.dentro=false;f.x=PORTA.x+(R()-.5)*14;f.y=PORTA.y+4;f.wait=0;}return;}
   if(refeicao||noite){if(ir(f,PORTA.x,PORTA.y,62,dt,3)){f.dentro=true;if(refeicao&&!f.comeu){f.comeu=true;f.energia=Math.max(f.energia,refeicao.q);}}return;}
   if(f.tarefa&&f.energia>0){
     const t=alvoTarefa(f);f.alvo=t||null;if((f.pausa-=dt)>0)return;
     if(t){const pl=f.tarefa==='regar'||f.tarefa==='lavrar'||f.tarefa==='colher',ar=f.tarefa==='lenha';
-      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64*(1+.06*melh.botas),dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=.9;fazTarefa(f,t);if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
+      if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64*(1+.06*melh.botas),dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=1.2;if(fazTarefa(f,t)!==false)f.usa=1.1;if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
       return;}
+    if((f.dito=(f.dito||3)-dt)<=0){f.dito=18;dizer(f.x,f.y-36*f.e,NADA[f.tarefa]);}
   }
   if((f.wait-=dt)<=0){f.wait=3+R()*6;const h=f.tarefa&&f.energia>0;f.tx=h?186+R()*60:330+R()*130;f.ty=h?236+R()*70:TOP+14+R()*56;}
   if(ir(f,f.tx,f.ty,34,dt,1)&&Math.hypot(Q.x-f.x,Q.y-f.y)<46)f.dir=Q.x>f.x?1:-1;
@@ -429,7 +433,7 @@ function despertar(){dormindo=false;animais.forEach(a=>{a.st='idle';a.wait=1;a.a
 function controlar(i){
   const n=GENTE[i];if(n===P)return;const era=P,antes=cena;
   era.meta=null;era.rota=[];era.tx=era.x;era.ty=era.y;era.pausa=0;if(antes==='casa')era.dentro=true;if(antes==='cidade'){era.carro=false;era.x=era.tx=WW-40;era.y=era.ty=PORTAO.y;}
-  P=n;P.rota=[];P.meta=null;P.pausa=0;
+  P=n;P.rota=[];P.meta=null;P.pausa=0;P.tarefa='';P.usa=0;P.alvo=null;
   if(n.dentro){n.dentro=false;cena='casa';P.x=222;P.y=102;}else cena='fazenda';
   P.tx=P.x;P.ty=P.y;sel=null;decor=null;if(cena!==antes)cinto();
   const mw=cena==='casa'?CW:WW,mh=cena==='casa'?CH:WH;cam.x=clamp(P.x-W/2,0,Math.max(0,mw-W));cam.y=clamp(P.y-H*.58,0,Math.max(0,mh-H));
@@ -623,13 +627,13 @@ function mochila(aba){
   em('[data-comer]',d=>{soma(d.comer,-1);P.energia=Math.min(100,P.energia+50);tocar('comer');mochila();});em('[data-chamar]',d=>{fechar();chamarBicho(animais[+d.chamar]);});
 }
 function familiaM(){
-  let h='<h2>Família</h2><p>Quem está nas suas mãos faz o que você tocar. Os outros fazem a tarefa escolhida enquanto tiverem energia.</p><ul>';
-  GENTE.forEach((p,i)=>{const at=p===P,onde=at?'Nas suas mãos':p.dentro?(refeicao?'À mesa':'Na cama'):p.energia<=0&&p.tarefa?'Sem energia':'';
-    h+='<li class="pessoa"><span><b>'+esc(nomeDe(p))+'</b><small>Energia '+Math.round(p.energia)+'% <i class="mini'+(p.energia<15?' baixo':'')+'"><i style="width:'+p.energia+'%"></i></i>'+(onde?' · '+onde:'')+'</small>'+
-      (at?'':'<label for="t'+i+'">Tarefa</label><select id="t'+i+'" data-t="'+i+'">'+Object.keys(TAREFAS).filter(k=>!(p.id==='filha'&&k==='lenha')).map(k=>'<option value="'+k+'"'+(p.tarefa===k?' selected':'')+'>'+TAREFAS[k]+'</option>').join('')+'</select>')+
-      '</span><span class="bots">'+(at?'':'<button type="button" data-ctl="'+i+'">Controlar</button>')+'</span></li>';});
+  let h='<h2>Família</h2><p>Toque numa ordem por baixo do nome de cada um. Cada pessoa faz só a sua ordem, enquanto tiver energia.</p><ul>';
+  const papel={mae:'mãe',ele:'pai',filha:'filha'};
+  GENTE.forEach((p,i)=>{const at=p===P,onde=at?'Nas suas mãos: faz o que você tocar':p.dentro?(refeicao?'À mesa':'Na cama'):p.energia<=0&&p.tarefa?'Sem energia':p.tarefa?'Agora: '+TAREFAS[p.tarefa].toLowerCase():'Descansando';
+    h+='<li class="pessoa"><span><b>'+esc(nomeDe(p))+' · '+papel[p.id]+'</b><small>Energia '+Math.round(p.energia)+'% <i class="mini'+(p.energia<15?' baixo':'')+'"><i style="width:'+p.energia+'%"></i></i></small><small>'+onde+'</small></span><span class="bots">'+(at?'':'<button type="button" data-ctl="'+i+'">Controlar</button>')+'</span></li>'+
+      (at?'':'<li class="ordens">'+Object.keys(TAREFAS).filter(k=>!(p.id==='filha'&&k==='lenha')).map(k=>'<button type="button" data-t="'+i+'" data-k="'+k+'" aria-pressed="'+(p.tarefa===k)+'">'+({'':'Descansar',regar:'Regar',lavrar:'Enxada',colher:'Colher',lenha:'Lenha',recolher:'Recolher',carinho:'Carinho',alimentar:'Alimentar',pescar:'Pescar'})[k]+'</button>').join('')+'</li>');});
   abrir(h+'</ul><label for="nEle">Nome do pai</label><input id="nEle" maxlength="12" autocomplete="off"><label for="nFilha">Nome da filha</label><input id="nFilha" maxlength="12" autocomplete="off"><button type="button" id="sairM">Fechar</button>');ligar(familiaM);
-  $('caixa').querySelectorAll('select').forEach(s=>s.onchange=()=>{const p=GENTE[+s.dataset.t];p.tarefa=s.value;p.pausa=0;p.wait=0;tocar('clique');gravar();});
+  em('[data-k]',d=>{const p=GENTE[+d.t];p.tarefa=d.k;p.pausa=0;p.wait=0;p.dito=2;p.usa=0;tocar('clique');gravar();familiaM();aviso(nomeDe(p)+': '+ORDEM[d.k]);if(!p.dentro)dizer(p.x,p.y-36*p.e,ORDEM[d.k]);});
   em('[data-ctl]',d=>{fechar();controlar(+d.ctl);});
   for(const[id,k]of[['nEle','ele'],['nFilha','filha']]){$(id).value=familia[k];$(id).onchange=()=>{familia[k]=$(id).value.trim()||familia[k];gravar();};}
 }

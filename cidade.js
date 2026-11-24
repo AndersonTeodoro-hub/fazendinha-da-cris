@@ -258,6 +258,9 @@ function cidadeDesenho(L,H){
 function cidadeFazenda(L,H){
   const{up,fl,somb,txt}=H;
   ondas(fl,ONDAS_F);
+  GENTE.forEach(f=>{if(f===P||f.dentro||!f.tarefa||f.energia<=0||!USA[f.tarefa])return;const k=USA[f.tarefa];
+    if(f.usa>0)L.push([f.y+.3,()=>up(f.x,f.y,()=>{cx.translate(f.dir*9,-15);cx.rotate(Math.sin(T*13)*.55*f.dir);cx.scale(.85,.85);ICO[k](cx);},f.e)]);
+    else if(f.alvo)L.push([f.y+.3,()=>up(f.x,f.y,()=>{cx.translate(0,-39);cx.beginPath();cx.roundRect(-5.5,-6,11,10.5,3.5);cx.fillStyle='#fff';cx.fill();cx.stroke();cx.scale(.55,.55);cx.translate(0,3);ICO[k](cx);},f.e)]);});
   {const d=descarga||{x:112,y:96,dir:-1},c=descarga&&descarga.c;L.push([d.y,()=>{somb(d.x,d.y,46);up(d.x,d.y,()=>picapeD(cx,carga.length-(c&&c.caixa?1:0),descarga&&d.st==='vai',suj),d.dir*1.3,1.3);}]);
     if(c&&c.caixa)L.push([c.y+.2,()=>up(c.x,c.y,()=>{cx.beginPath();cx.rect(-5,-33,10,8);cx.fillStyle='#d9ab7e';cx.fill();cx.stroke();cx.beginPath();cx.moveTo(-5,-29);cx.lineTo(5,-29);cx.stroke();},c.e)]);}
   fl(PORTAO.x-22,PORTAO.y,()=>{cx.beginPath();cx.roundRect(-44,-13,80,26,9);cx.fillStyle='#d9b98a';cx.fill();});
