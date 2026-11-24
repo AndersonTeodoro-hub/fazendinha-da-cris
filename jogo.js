@@ -202,6 +202,7 @@ function rotaCasa(p,x,y){
 
 /* ---------- lógica ---------- */
 function ir(e,x,y,v,dt,parar){
+  if((e.t&&SP[e.t])||(e.energia!==undefined&&!e.dentro&&(e!==P||cena==='fazenda'))){const q=viaPonte(e,x,y);if(q){const dx=q[0]-e.x,dy=q[1]-e.y,d=Math.hypot(dx,dy)||.01,p=Math.min(d,v*dt);e.x+=dx/d*p;e.y+=dy/d*p;if(Math.abs(dx)>1)e.dir=dx>0?1:-1;e.mov=true;e.ph+=dt*8;return false;}}
   const dx=x-e.x,dy=y-e.y,d=Math.hypot(dx,dy);
   if(d<=parar)return true;
   const p=Math.min(d-parar+.01,v*dt);e.x+=dx/d*p;e.y+=dy/d*p;
@@ -246,7 +247,7 @@ function apanhar(i){const it=itens[i];if(!it)return;dizer(it.x,it.y-9,'+1 '+NOME
 
 function pensar(a){
   const sp=SP[a.t];
-  if(a.st==='fetch'||a.st==='ret'||a.st==='eat')return;
+  if(a.st==='fetch'||a.st==='ret'||a.st==='eat'||a.st==='rio')return;
   if(chamar>0||a.vem>0){a.st='come';return;}
   const ordem=a.comida<=a.agua?['comida','agua']:['agua','comida'];
   for(const k of ordem)if(a[k]<60){let m=null,md=1e9;potes.forEach(p=>{const d=Math.hypot(p.x-a.x,p.y-a.y);if(p.k===k&&d<md){m=p;md=d;}});
@@ -255,7 +256,7 @@ function pensar(a){
   if(a.st!=='idle'&&a.st!=='walk'){a.st='idle';a.wait=.5;}
   if(a.st==='idle'&&(a.wait-=.5)<=0){
     const perto=false;let x,y,n=0;
-    do{x=clamp(perto?Q.x+(R()-.5)*90:14+R()*(WW-28),12,WW-12);y=clamp(perto?Q.y+(R()-.5)*60:TOP+14+R()*(WH-TOP-24),TOP+12,WH-8);}while((naHorta(x,y)||noLago(x,y,1.1))&&++n<6);
+    do{x=clamp(perto?Q.x+(R()-.5)*90:14+R()*(WW-28),12,WW-12);y=clamp(perto?Q.y+(R()-.5)*60:TOP+14+R()*(WH-TOP-24),TOP+12,WH-8);}while((naHorta(x,y)||noLago(x,y,1.1)||noRio(x,y))&&++n<6);
     a.tx=x;a.ty=y;a.st='walk';
   }
 }
@@ -267,7 +268,8 @@ function atualizar(a,dt){
   if(a.st!=='sleep'&&a.st!=='eat'&&R()<dt/45)voz(a);
   if((a.th-=dt)<=0){a.th=.5;pensar(a);}
   switch(a.st){
-    case 'eat': if((a.tm-=dt)<=0)a.st='idle';break;
+    case 'eat': if((a.tm-=dt)<=0){if(a.volta){a.tx=a.volta[0];a.ty=a.volta[1];a.volta=null;a.st='walk';}else a.st='idle';}break;
+    case 'rio': if(ir(a,a.tg.x,a.tg.y,sp.vel*1.5,dt,2)){a.dir=a.tg.d;a.agua=100;a.st='eat';a.tm=2.2;dizer(a.x,a.y-sp.h-4,'Glup, glup!');tocar('beber',a.x,a.y);}break;
     case 'walk': if(ir(a,a.tx,a.ty,sp.vel*(f<35?.5:1),dt,1)){a.st='idle';a.wait=1+R()*4;}break;
     case 'seek': {const p=a.tg;if(!potes.includes(p)){a.st='idle';break;}
       if(ir(a,p.x-a.dir*(sp.w/2+1),p.y+1,sp.vel*1.3,dt,2)){a.dir=p.x>a.x?1:-1;p.n--;a[p.k]=100;a.st='eat';a.tm=1.4;
@@ -284,25 +286,25 @@ function atualizar(a,dt){
   }
 }
 /* tarefas da família */
-function alvoTarefa(f){switch(f.tarefa){
-  case 'regar':return canteiros.find(c=>c.k&&!c.morta&&c.agua<=0&&c.g<PLANTAS[c.k].t);
-  case 'lavrar':return canteiros.find(c=>!c.lavrado||c.morta);
-  case 'colher':return canteiros.find(c=>c.k&&!c.morta&&c.g>=PLANTAS[c.k].t);
-  case 'lenha':return arvores.find(a=>a.hp>0);
-  case 'recolher':return itens[0]||(ninho>0?GALINHEIRO:null);
+function alvoTarefa(f){const livre=t=>!GENTE.some(g=>g!==f&&g!==P&&g.alvo===t);switch(f.tarefa){
+  case 'regar':return canteiros.find(c=>c.k&&!c.morta&&c.agua<=0&&c.g<PLANTAS[c.k].t&&livre(c));
+  case 'lavrar':return canteiros.find(c=>(!c.lavrado||c.morta)&&livre(c));
+  case 'colher':return canteiros.find(c=>c.k&&!c.morta&&c.g>=PLANTAS[c.k].t&&livre(c));
+  case 'lenha':return arvores.find(a=>a.hp>0&&livre(a));
+  case 'recolher':return itens.find(livre)||(ninho>0&&livre(GALINHEIRO)?GALINHEIRO:null);
   case 'pescar':return peixes>0?MARGEM:null;
-  case 'carinho':return animais.filter(a=>a.amor<70).sort((a,b)=>a.amor-b.amor)[0];
-  case 'alimentar':return animais.find(a=>(a.comida<50&&tem('racao'))||a.agua<50);}}
+  case 'carinho':return animais.filter(a=>a.amor<70&&livre(a)).sort((a,b)=>a.amor-b.amor)[0];
+  case 'alimentar':return animais.find(a=>((a.comida<50&&tem('racao'))||a.agua<50)&&livre(a));}}
 function fazTarefa(f,t){switch(f.tarefa){
   case 'regar':return regarC(t,f);case 'lavrar':return lavrarC(t,f);case 'colher':return colherC(t,f);case 'lenha':return cortar(t,f);
   case 'recolher':return t===GALINHEIRO?recolheNinho():apanhar(itens.indexOf(t));case 'pescar':return pescaAuto(f);case 'carinho':return carinho(t,f);
   case 'alimentar':return t.comida<50&&tem('racao')?dar(t,'comida',f):dar(t,'agua',f);}}
 function familiaPasso(f,dt){
-  f.mov=false;
+  f.mov=false;f.alvo=null;
   if(f.dentro){if(!refeicao&&!noite){f.dentro=false;f.x=PORTA.x+(R()-.5)*14;f.y=PORTA.y+4;f.wait=0;}return;}
   if(refeicao||noite){if(ir(f,PORTA.x,PORTA.y,62,dt,3)){f.dentro=true;if(refeicao&&!f.comeu){f.comeu=true;f.energia=Math.max(f.energia,refeicao.q);}}return;}
   if(f.tarefa&&f.energia>0){
-    if((f.pausa-=dt)>0)return;const t=alvoTarefa(f);
+    const t=alvoTarefa(f);f.alvo=t||null;if((f.pausa-=dt)>0)return;
     if(t){const pl=f.tarefa==='regar'||f.tarefa==='lavrar'||f.tarefa==='colher',ar=f.tarefa==='lenha';
       if(ir(f,t.x+(ar?(f.x<t.x?-9:9):pl?0:(f.x<t.x?-12:12)),t.y+(pl?13:2),64*(1+.06*melh.botas),dt,2)){f.dir=t.x>f.x?1:-1;f.pausa=.9;fazTarefa(f,t);if(f.energia<5)dizer(f.x,f.y-30*f.e,'Estou sem energia...');}
       return;}
@@ -335,7 +337,7 @@ function passo(dt){
     if(!bola.chao){bola.t+=dt/.6;const k=Math.min(1,bola.t);bola.x=bola.sx+(bola.tx-bola.sx)*k;bola.y=bola.sy+(bola.ty-bola.sy)*k;bola.z=Math.sin(Math.PI*k)*26;if(k>=1)bola.chao=true;}
     else if(!bola.de&&(bola.vida-=dt)<=0)bola=null;
   }
-  animais.forEach(a=>atualizar(a,dt));GENTE.forEach(f=>{if(f!==P)familiaPasso(f,dt);});arvores.forEach(a=>a.treme=Math.max(0,a.treme-dt*3));
+  animais.forEach(a=>atualizar(a,dt));GENTE.forEach(f=>{if(f!==P&&!(descarga&&descarga.c===f))familiaPasso(f,dt);});arvores.forEach(a=>a.treme=Math.max(0,a.treme-dt*3));
   for(let i=itens.length-1;i>=0;i--){itens[i].t+=dt;if(cena==='fazenda'&&Math.hypot(itens[i].x-P.x,itens[i].y-P.y)<10)apanhar(i);}
   const k=Math.min(1,dt*5),mw=cena==='casa'?CW:cena==='cidade'?CIW:WW,mh=cena==='casa'?CH:cena==='cidade'?CIH:WH;
   cam.x+=((mw<=W?(mw-W)/2:clamp(P.x-W/2,0,mw-W))-cam.x)*k;cam.y+=((mh<=H?(mh-H)/2:clamp(P.y-H*.58,0,mh-H))-cam.y)*k;
@@ -605,7 +607,7 @@ function mochila(aba){
     if(!ks.length)h+='<li class="vazio">A mochila está vazia.</li>';
     ks.forEach(k=>{h+=linha(k,nomeItem(k)+' ×'+inv[k],k==='presente'?'Um mimo que o cachorro ou o gato trouxe. Abra para ver o que tem dentro.':RECEITAS[k]?'Comer dá 50% de energia':VENDA[k]?'Vale '+VENDA[k]+' cada':'',k==='presente'?'<button type="button" id="abreP">Abrir</button>':RECEITAS[k]?'<button type="button" data-comer="'+k+'">'+esc(nomeDe(P))+' come</button>':'');});
     h+='</ul>';}
-  else if(abaMochila==='bichos'){h+='<button type="button" id="todos">Chamar todos</button><ul>';
+  else if(abaMochila==='bichos'){h+='<button type="button" id="todos">Chamar todos</button><button type="button" id="todosRio">Mandar todos beber água no rio</button><ul>';
     animais.forEach((a,i)=>{h+='<li><img alt="" src="'+img(a.t)+'"><span><b>'+esc(a.n)+'</b><small>'+STATS.map(k=>'<i class="mini'+(a[k]<30?' baixo':'')+'" title="'+k+'"><i style="width:'+a[k]+'%"></i></i>').join('')+'</small></span><span class="bots"><button type="button" data-chamar="'+i+'">Chamar</button></span></li>';});
     h+='</ul>';}
   else h+='<ul class="ajuda"><li><b>Andar:</b> toque ou arraste o dedo (ou o mouse) e a pessoa segue.</li><li><b>Ver mais longe:</b> use os botões + e −, a roda do mouse ou dois dedos. O botão Tudo mostra a fazenda inteira.</li><li><b>Família:</b> toque no nome lá em cima para trocar de pessoa ou dar tarefas ao pai, à filha e à mãe. Cada um tem energia, que se gasta a trabalhar.</li>'+
@@ -615,6 +617,7 @@ function mochila(aba){
     '<li><b>Pedidos e nível:</b> toque em Nível, lá em cima. Todas as manhãs os vizinhos fazem três pedidos que pagam mais do que a loja. Cada ação dá pontos; ao subir de nível a loja ganha sementes, bichos e móveis novos.</li><li><b>Cidade:</b> a placa "Cidade", do lado direito da fazenda, leva à rua das fazendas: visite os vizinhos, faça negócios, churrasco na praça e compras no mercado. A picape traz 6 caixas de uma vez.</li><li><b>Loja:</b> compre bichos, sementes e móveis, e venda na aba Vender o que a fazenda produz. Na aba Melhorias, evolua o regador, as ferramentas, o galinheiro e as botas.</li><li><b>Casa:</b> cozinha, sala, quarto do casal e quarto da filha. Toque no fogão a lenha para cozinhar, na TV para ligar, e use Decorar para pôr móveis.</li>'+
     '<li><b>Dormir:</b> de dia, pausa o jogo. À noite, todos dormem, acordam de manhã e com a energia cheia. O jogo guarda sozinho e fica parado enquanto estiver fechado: ao voltar, continua de onde parou.</li></ul>';
   abrir(h+'<button type="button" id="sairM">Fechar</button>');ligar(mochila);
+  if($('todosRio'))$('todosRio').onclick=()=>{fechar();animais.forEach(beberRio);tocar('clique');aviso('Os bichos vão ao rio e ao lago beber água e depois voltam.');};
   if($('todos'))$('todos').onclick=()=>{fechar();if(cena!=='fazenda')return aviso('Saia de casa para chamar os bichos.');chamar=5;animais.forEach(a=>{acordar(a);a.th=0;});osc(900,.3,{f2:1500,v:.4});};
   if($('abreP'))$('abreP').onclick=()=>{const t=abrePresente();mochila();if(t)aviso('Dentro do presente havia: '+t+'!');};
   em('[data-comer]',d=>{soma(d.comer,-1);P.energia=Math.min(100,P.energia+50);tocar('comer');mochila();});em('[data-chamar]',d=>{fechar();chamarBicho(animais[+d.chamar]);});
@@ -658,6 +661,7 @@ $('som').onclick=()=>{som=!som;$('som').textContent=som?'Som':'Mudo';gravar();};
 $('acordar').onclick=despertar;
 $('bChamar').onclick=()=>{if(sel)chamarBicho(sel);};
 $('bFalar').onclick=()=>{if(sel)conversar(sel);};
+$('bRio').onclick=()=>{if(sel){beberRio(sel);tocar('clique');aviso(sel.n+' vai beber água e depois volta.');}};
 addEventListener('resize',ajustar);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)gravar();});
 addEventListener('pagehide',gravar);addEventListener('beforeunload',gravar);

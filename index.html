@@ -19,7 +19,7 @@
 html,body{height:100%;margin:0}
 body{background:var(--mato);color:var(--tinta);font-family:var(--f-texto);font-size:16px;
   -webkit-user-select:none;user-select:none;overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column}
+#app{position:fixed;inset:0;height:100vh;height:100dvh;display:flex;flex-direction:column}
 header,nav{background:linear-gradient(#a97647,var(--madeira));display:flex;align-items:center;gap:8px;padding:7px 12px}
 header{border-bottom:3px solid var(--madeira-escura)}
 nav{border-top:3px solid var(--madeira-escura);justify-content:center;flex-wrap:wrap}
@@ -31,8 +31,11 @@ button{font-family:var(--f-texto);font-weight:500;font-size:15px;color:var(--tin
 button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--madeira-escura)}
 button:focus-visible,input:focus-visible{outline:3px solid var(--sol);outline-offset:2px}
 button:disabled{opacity:.5;cursor:default}
-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:66px;padding:4px 6px 3px;font-size:13px}
-nav button img{width:34px;height:34px}
+nav{gap:5px;padding:4px 8px}nav button{display:flex;flex-direction:column;align-items:center;gap:0;min-width:54px;padding:2px 5px;font-size:11.5px;border-radius:10px}
+nav button img{width:26px;height:26px}
+@media(max-width:720px),(max-height:520px){header{gap:3px;padding:3px 4px;justify-content:center}h1{display:none}.chapa,header button{font-size:11px!important;padding:1px 5px!important;box-shadow:0 2px 0 var(--madeira-escura)}#nv .mini{display:none}#nv small{font-size:10px}.chapa i{width:9px;height:9px;margin-right:3px}
+  nav{gap:2px;padding:3px 2px;flex-wrap:nowrap}nav button{flex:1 1 0;min-width:0!important;overflow:hidden;padding:1px 0!important;font-size:9px!important;border-radius:8px;box-shadow:0 2px 0 var(--madeira-escura)}nav button img{width:21px;height:21px}nav button span{white-space:nowrap;overflow:hidden;max-width:100%}
+  #ficha{width:150px;padding:4px 7px;font-size:13px}#zoom button{padding:2px 8px;font-size:13px}}
 nav button[aria-pressed="true"]{background:var(--sol)}
 #palco{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
 canvas{display:block;filter:saturate(1.3) contrast(1.07);touch-action:none;cursor:pointer}
@@ -109,6 +112,7 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
       <div class="barra">Água<div><span id="bAgua"></span></div></div>
       <div class="barra">Carinho<div><span id="bAmor"></span></div></div>
       <div class="acoes"><button id="bChamar" type="button">Chamar</button><button id="bFalar" type="button">Conversar</button></div>
+      <div class="acoes"><button id="bRio" type="button">Beber água no rio</button></div>
     </div>
     <div id="sono" hidden><p id="sonoTxt"></p><button id="acordar" type="button">Acordar</button></div>
     <div id="aviso" hidden></div>
@@ -118,16 +122,16 @@ nav button{min-width:58px;padding:3px 4px 2px;font-size:12px}nav button img{widt
 <div id="fundo" hidden><div id="caixa"></div></div>
 
 <script src="three.min.js"></script>
-<script src="arte.js?v=16"></script>
-<script src="arte2.js?v=16"></script>
-<script src="arte3.js?v=16"></script>
-<script src="arte4.js?v=16"></script>
-<script src="arte5.js?v=16"></script>
-<script src="extras.js?v=16"></script>
-<script src="vida.js?v=16"></script>
-<script src="cidade.js?v=16"></script>
-<script src="tres.js?v=16"></script>
-<script src="niveis.js?v=16"></script>
-<script src="jogo.js?v=16"></script>
+<script src="arte.js?v=17"></script>
+<script src="arte2.js?v=17"></script>
+<script src="arte3.js?v=17"></script>
+<script src="arte4.js?v=17"></script>
+<script src="arte5.js?v=17"></script>
+<script src="extras.js?v=17"></script>
+<script src="vida.js?v=17"></script>
+<script src="cidade.js?v=17"></script>
+<script src="tres.js?v=17"></script>
+<script src="niveis.js?v=17"></script>
+<script src="jogo.js?v=17"></script>
 </body>
 </html>

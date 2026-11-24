@@ -92,7 +92,7 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
       cam3.fov=Math.max(34,2*Math.atan(150/asp/2/200)*180/Math.PI);cam3.position.set(hx,205*z,hzz+180*z);cam3.lookAt(hx,0,hzz-10);}
     else{const C=cena==='cidade',w=C?CIW:WW,h=C?CIH:WH,tp=C?70:TOP,t=clamp((z-1.3)/(ZMAX-1.3),0,1),mx=70+(w/2-70)*t,mz=tp+50+(h/2-tp-50)*t;
       tx+=(clamp(P.x,mx,w-mx)-tx)*k;tz+=(clamp(P.y,mz,Math.max(mz,h-40-(h/2-40)*t))-tz)*k;
-      cam3.fov=Math.max(34,2*Math.atan(190/asp/2/311)*180/Math.PI);cam3.position.set(tx,230*z,tz+210*z);cam3.lookAt(tx,0,tz-14);
+      cam3.fov=Math.max(34,2*Math.atan(190/asp/2/311)*180/Math.PI);cam3.position.set(tx,230*z,tz+210*z);F3.cz=tz+210*z;cam3.lookAt(tx,0,tz-14);
       const f=(C?scC:sc).fog;f.near=480*Math.max(1,z);f.far=1100*Math.max(1,z)+500;}
     cam3.updateProjectionMatrix();cam3.updateMatrixWorld();
   }
@@ -115,8 +115,8 @@ const F3={ok:false,c3:null,dedos:0,zoom:1};
 
   /* ---------- personagens e objetos 2D projetados ---------- */
   function txt(s,x,y,cor,tam){cx.font='600 '+(tam||6.5)+'px Fredoka,"Trebuchet MS",sans-serif';cx.textAlign='center';cx.lineWidth=1.7;cx.strokeStyle=LN;cx.strokeText(s,x,y);cx.fillStyle=cor||'#fff';cx.fillText(s,x,y);pronto(cx);}
-  const up=(x,y,f,ex,ey)=>{const p=P3(x,y);if(p.sx<-60*p.k||p.sx>cv.width+60*p.k||p.sy<-10*p.k||p.sy>cv.height+70*p.k)return;cx.setTransform(p.k*(ex||1),0,0,p.k*Math.abs(ey||ex||1),p.sx,p.sy);pronto(cx);f();};
-  const fl=(x,y,f)=>{const a=pj(x,y),q=pj(x+1,y),c=pj(x,y+1);cx.setTransform(q[0]-a[0],q[1]-a[1],c[0]-a[0],c[1]-a[1],a[0],a[1]);pronto(cx);f();};
+  const up=(x,y,f,ex,ey)=>{if(cena!=='casa'&&y>F3.cz-30)return;const p=P3(x,y);if(p.sx<-60*p.k||p.sx>cv.width+60*p.k||p.sy<-10*p.k||p.sy>cv.height+70*p.k)return;cx.setTransform(p.k*(ex||1),0,0,p.k*Math.abs(ey||ex||1),p.sx,p.sy);pronto(cx);f();};
+  const fl=(x,y,f)=>{if(cena!=='casa'&&y>F3.cz-30)return;const a=pj(x,y),q=pj(x+1,y),c=pj(x,y+1);cx.setTransform(q[0]-a[0],q[1]-a[1],c[0]-a[0],c[1]-a[1],a[0],a[1]);pronto(cx);f();};
   const somb=(x,y,w,k)=>fl(x,y,()=>el(cx,0,0,w*.46*(k||1),w*.24*(k||1),'rgba(20,50,20,.28)',0,0));
   const anel=(x,y,w,cor,fundo)=>fl(x,y,()=>{cx.setLineDash([2.4,1.8]);cx.lineDashOffset=-T*5;cx.strokeStyle=cor;cx.lineWidth=1;el(cx,0,0,w,w*.62,fundo);cx.setLineDash([]);});
   function caixa(x0,y0,x1,y1,h,c){
